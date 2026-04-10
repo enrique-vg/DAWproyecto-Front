@@ -1,0 +1,181 @@
+/* =============================================
+   POMOTANKS — Design System
+   Importado en main.js, aplica a toda la app
+   ============================================= */
+
+/* Google Fonts — Space Mono (timer) + Syne (display) */
+@import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap');
+
+/* ===== RESET ===== */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* ===== VARIABLES ===== */
+:root {
+  /* Colores principales */
+  --color-bg:           #0e0e13;
+  --color-surface:      #17171f;
+  --color-surface-2:    #1f1f2e;
+  --color-border:       #2a2a3a;
+  --color-border-soft:  #222230;
+
+  /* Primario (púrpura) */
+  --color-primary:      #7c5cfc;
+  --color-primary-dim:  #5a3fd4;
+  --color-primary-glow: rgba(124, 92, 252, 0.25);
+
+  /* Acento (naranja) */
+  --color-accent:       #f5a623;
+  --color-accent-soft:  rgba(245, 166, 35, 0.15);
+
+  /* Estados */
+  --color-success:      #4ecb71;
+  --color-danger:       #ff5e5e;
+
+  /* Texto */
+  --color-text:         #eeeef5;
+  --color-text-muted:   #7b7b9a;
+  --color-text-dim:     #4a4a6a;
+
+  /* Timer */
+  --timer-ring:         #7c5cfc;
+  --timer-ring-bg:      #1f1f2e;
+  --font-mono:          'Space Mono', monospace;
+
+  /* Tipografía */
+  --font-display: 'Syne', sans-serif;
+
+  /* Bordes redondeados */
+  --radius-sm:   6px;
+  --radius-md:   12px;
+  --radius-lg:   20px;
+  --radius-full: 9999px;
+
+  /* Sombras */
+  --shadow-sm:   0 2px 8px rgba(0,0,0,0.3);
+  --shadow-md:   0 4px 20px rgba(0,0,0,0.4);
+  --shadow-glow: 0 0 30px var(--color-primary-glow);
+}
+
+/* ===== BASE ===== */
+html {
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  font-family: var(--font-display);
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  min-height: 100vh;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: var(--color-primary);
+  text-decoration: none;
+}
+a:hover { text-decoration: underline; }
+
+button { font-family: var(--font-display); cursor: pointer; border: none; outline: none; }
+input, select, textarea { font-family: var(--font-display); }
+
+/* ===== SCROLLBAR ===== */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--color-bg); }
+::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: var(--radius-full); }
+
+/* ===== BOTONES GLOBALES ===== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-full);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.95rem;
+  text-decoration: none !important;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  border: none;
+  white-space: nowrap;
+}
+.btn--lg  { padding: 0.85rem 2rem; width: 100%; }
+.btn--md  { padding: 0.65rem 1.4rem; }
+.btn--sm  { padding: 0.45rem 1rem; font-size: 0.85rem; }
+
+.btn--primary {
+  background: var(--color-primary);
+  color: #fff;
+  box-shadow: 0 4px 20px var(--color-primary-glow);
+}
+.btn--primary:hover {
+  background: var(--color-primary-dim);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 28px var(--color-primary-glow);
+}
+.btn--primary:active { transform: translateY(0); }
+.btn--primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+.btn--ghost {
+  background: transparent;
+  color: var(--color-text-muted);
+  border: 1.5px solid var(--color-border);
+}
+.btn--ghost:hover {
+  border-color: var(--color-primary);
+  color: var(--color-text);
+  background: var(--color-primary-glow);
+}
+
+.btn--danger {
+  background: transparent;
+  color: var(--color-danger);
+  border: 1.5px solid var(--color-danger);
+}
+.btn--danger:hover { background: rgba(255,94,94,0.1); }
+
+/* ===== PRIMEVUE OVERRIDES ===== */
+.p-inputtext {
+  background: var(--color-surface-2) !important;
+  border: 1.5px solid var(--color-border) !important;
+  border-radius: var(--radius-md) !important;
+  color: var(--color-text) !important;
+  font-family: var(--font-display) !important;
+  padding: 0.75rem 1rem !important;
+  width: 100%;
+  transition: border-color 0.2s;
+}
+.p-inputtext:focus {
+  border-color: var(--color-primary) !important;
+  box-shadow: 0 0 0 3px var(--color-primary-glow) !important;
+}
+.p-inputtext::placeholder { color: var(--color-text-dim) !important; }
+
+.p-password { width: 100%; }
+.p-password .p-inputtext { width: 100%; }
+.p-password-toggle-mask-icon { color: var(--color-text-muted) !important; }
+
+.p-dropdown {
+  background: var(--color-surface-2) !important;
+  border: 1.5px solid var(--color-border) !important;
+  border-radius: var(--radius-md) !important;
+  width: 100%;
+}
+.p-dropdown:not(.p-disabled).p-focus {
+  border-color: var(--color-primary) !important;
+  box-shadow: 0 0 0 3px var(--color-primary-glow) !important;
+}
+.p-dropdown-label { color: var(--color-text) !important; font-family: var(--font-display) !important; }
+.p-dropdown-panel {
+  background: var(--color-surface-2) !important;
+  border: 1.5px solid var(--color-border) !important;
+  border-radius: var(--radius-md) !important;
+}
+.p-dropdown-item { color: var(--color-text) !important; font-family: var(--font-display) !important; }
+.p-dropdown-item:hover,
+.p-dropdown-item.p-highlight { background: var(--color-primary-glow) !important; }
