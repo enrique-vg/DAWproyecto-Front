@@ -1,76 +1,187 @@
 <template>
-  <div class="timer-placeholder">
-    <div class="timer-placeholder__content">
-      <div class="timer-placeholder__icon" aria-hidden="true">
-        <svg viewBox="0 0 64 64" fill="none">
-          <circle cx="32" cy="32" r="28" stroke="var(--color-primary)" stroke-width="2" opacity="0.4"/>
-          <circle cx="32" cy="32" r="28" stroke="var(--color-primary)" stroke-width="2"
-            stroke-dasharray="176" stroke-dashoffset="44" stroke-linecap="round"/>
-          <text x="32" y="37" text-anchor="middle"
-            font-family="'Space Mono', monospace"
-            font-size="11" fill="var(--color-text)" font-weight="700">
-            25:00
-          </text>
-        </svg>
-      </div>
-      <h2 class="timer-placeholder__title">¡Bienvenido!</h2>
-      <p class="timer-placeholder__sub">El timer estará disponible próximamente.</p>
-      <button class="btn btn--ghost btn--md" @click="handleLogout">
-        <i class="pi pi-sign-out" style="margin-right:0.4rem"></i>
-        Cerrar sesión
-      </button>
-    </div>
+  <div class="timer-page">
+    <AppNav />
+
+    <main class="timer-main">
+      <Transition name="slide-up" mode="out-in">
+
+        <!-- Estado: COMPLETADO -->
+        <CompletadoPanel
+          v-if="timerStore.estado === timerStore.ESTADO.COMPLETADO"
+          key="completado"
+        />
+
+        <!-- Estados: IDLE / CORRIENDO / PAUSADO -->
+        <div class="timer-wrapper" v-else key="timer">
+
+          <!-- Config solo visible en idle -->
+          <Transition name="colapsar">
+            <TimerConfig v-if="timerStore.estado === timerStore.ESTADO.IDLE" />
+          </Transition>
+
+          <!-- Reloj SVG -->
+          <TimerClock
+            :minutos="timerStore.minutos"
+            :segundos="timerStore.segundos"
+            :progreso-pct="timerStore.progresoPct"
+            :tipo="timerStore.tipoPeriodo"
+          />
+
+          <!-- Botón principal -->
+          <button
+            v-if="timerStore.estado === timerStore.ESTADO.IDLE"
+            class="btn btn--primary timer-btn"
+            @click="timerStore.empezar()"
+          >
+            Empezar
+          </button>
+
+          <button
+            v-else-if="timerStore.estado === timerStore.ESTADO.CORRIENDO"
+            class="btn btn--danger timer-btn"
+            @click="handleParar"
+          >
+            Parar
+          </button>
+
+          <button
+            v-else-if="timerStore.estado === timerStore.ESTADO.PAUSADO"
+            class="btn btn--primary timer-btn"
+            @click="timerStore.reanudar()"
+          >
+            Reanudar
+          </button>
+
+          <!-- Mascota / leyenda -->
+          <div class="timer-mascota">
+            <div class="timer-mascota__img" aria-hidden="true">
+              <svg viewBox="0 0 120 80" fill="none">
+                <rect x="20" y="44" width="80" height="26" rx="6"
+                  fill="var(--color-surface-2)" stroke="var(--color-border)" stroke-width="1.5"/>
+                <rect x="32" y="32" width="52" height="18" rx="4"
+                  fill="var(--color-surface-2)" stroke="var(--color-border)" stroke-width="1.5"/>
+                <rect x="50" y="22" width="36" height="12" rx="3"
+                  fill="var(--color-surface-2)" stroke="var(--color-border)" stroke-width="1.5"/>
+                <circle cx="34" cy="72" r="7"
+                  fill="var(--color-bg)" stroke="var(--color-primary)" stroke-width="2"/>
+                <circle cx="60" cy="72" r="7"
+                  fill="var(--color-bg)" stroke="var(--color-primary)" stroke-width="2"/>
+                <circle cx="86" cy="72" r="7"
+                  fill="var(--color-bg)" stroke="var(--color-primary)" stroke-width="2"/>
+                <circle cx="62" cy="39" r="2.5" fill="var(--color-primary)"/>
+                <circle cx="74" cy="39" r="2.5" fill="var(--color-primary)"/>
+              </svg>
+            </div>
+            <p class="timer-mascota__texto">{{ textoMascota }}</p>
+          </div>
+
+        </div>
+      </Transition>
+    </main>
+
+    <!-- Modal abandonar (v-model) -->
+    <AbandonarModal v-model="mostrarAbandonar" />
   </div>
 </template>
 
 <script setup>
-import { useRouter } from 'vue-router'
-import { useAuthStore } from '@/stores/authStore'
+import { ref, computed, onMounted } from 'vue'
+import AppNav         from '@/components/ui/AppNav.vue'
+import TimerConfig    from '@/components/timer/TimerConfig.vue'
+import TimerClock     from '@/components/timer/TimerClock.vue'
+import CompletadoPanel from '@/components/timer/CompletadoPanel.vue'
+import AbandonarModal from '@/components/timer/AbandonarModal.vue'
+import { useTimerStore } from '@/stores/timerStore'
 
-const router    = useRouter()
-const authStore = useAuthStore()
+const timerStore      = useTimerStore()
+const mostrarAbandonar = ref(false)
 
-async function handleLogout() {
-  await authStore.logout()
-  router.push({ name: 'welcome' })
+onMounted(async () => {
+  await timerStore.cargarConfig()
+  await timerStore.cargarMaterias()
+})
+
+function handleParar() {
+  timerStore.parar()
+  mostrarAbandonar.value = true
 }
+
+const textoMascota = computed(() => {
+  const e = timerStore.estado
+  const t = timerStore.tipoPeriodo
+  if (e === timerStore.ESTADO.IDLE)      return '¡Listo para conquistar el tiempo!'
+  if (t === timerStore.TIPO.TRABAJO)     return '¡Tú puedes! Mantén el foco.'
+  return '¡Descansa, lo mereces!'
+})
 </script>
 
 <style scoped>
-.timer-placeholder {
+.timer-page {
   min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-bg);
+}
+
+.timer-main {
+  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 2rem;
-  background: var(--color-bg);
+  padding: 2rem 1rem;
 }
-.timer-placeholder__content {
+
+.timer-wrapper {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1.5rem;
-  max-width: 340px;
-  text-align: center;
-  animation: fadeUp 0.5s ease both;
+  gap: 1.75rem;
+  width: 100%;
+  max-width: 400px;
 }
-@keyframes fadeUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to   { opacity: 1; transform: translateY(0); }
+
+.timer-btn {
+  width: 180px;
+  padding: 0.8rem 0;
 }
-.timer-placeholder__icon {
-  width: 100px;
-  height: 100px;
+
+/* Mascota */
+.timer-mascota {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
 }
-.timer-placeholder__title {
-  font-family: var(--font-display);
-  font-size: 1.6rem;
-  font-weight: 800;
-  color: var(--color-text);
-}
-.timer-placeholder__sub {
-  font-size: 0.9rem;
+.timer-mascota__img { width: 120px; height: 80px; }
+.timer-mascota__texto {
+  font-size: 0.85rem;
   color: var(--color-text-muted);
-  line-height: 1.7;
+  text-align: center;
+  font-style: italic;
+}
+
+/* Transición config al empezar */
+.colapsar-enter-active, .colapsar-leave-active {
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+.colapsar-enter-from, .colapsar-leave-to {
+  opacity: 0;
+  max-height: 0;
+  transform: translateY(-8px);
+}
+.colapsar-enter-to, .colapsar-leave-from {
+  max-height: 180px;
+}
+
+/* Transición completado ↔ timer */
+.slide-up-enter-active, .slide-up-leave-active {
+  transition: all 0.3s cubic-bezier(.4,0,.2,1);
+}
+.slide-up-enter-from { opacity: 0; transform: translateY(20px); }
+.slide-up-leave-to   { opacity: 0; transform: translateY(-20px); }
+
+@media (max-width: 480px) {
+  .timer-main { padding: 1rem 0.75rem; align-items: flex-start; padding-top: 1.5rem; }
 }
 </style>
