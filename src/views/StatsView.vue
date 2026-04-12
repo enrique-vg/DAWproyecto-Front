@@ -52,33 +52,56 @@
         <div class="stats-resumen">
           <div class="stats-resumen__card">
             <span class="stats-resumen__valor">
-              <template v-if="statsStore.loading">
-                <i class="pi pi-spin pi-spinner"></i>
-              </template>
-              <template v-else>
-                {{ statsStore.progreso?.totalSesiones ?? '–' }}
-              </template>
+              <i v-if="statsStore.loading" class="pi pi-spin pi-spinner"></i>
+              <template v-else>{{ statsStore.progreso?.totalSesiones ?? '–' }}</template>
             </span>
             <span class="stats-resumen__etiqueta">Sesiones</span>
           </div>
           <div class="stats-resumen__card">
             <span class="stats-resumen__valor">
-              <template v-if="statsStore.loading">
-                <i class="pi pi-spin pi-spinner"></i>
-              </template>
-              <template v-else>
-                {{ tiempoFormateado }}
-              </template>
+              <i v-if="statsStore.loading" class="pi pi-spin pi-spinner"></i>
+              <template v-else>{{ tiempoFormateado }}</template>
             </span>
             <span class="stats-resumen__etiqueta">Tiempo total</span>
           </div>
         </div>
 
-        <!-- Placeholder gráfico — se sustituye en Pack D3b -->
-        <div class="stats-grafico-placeholder">
-          <i class="pi pi-chart-bar stats-grafico-placeholder__icono"></i>
-          <p class="stats-grafico-placeholder__texto">Gráfico de actividad</p>
-          <p class="stats-grafico-placeholder__sub">Disponible próximamente</p>
+        <!-- Gráfico -->
+        <div class="stats-card">
+          <div v-if="statsStore.loading" class="stats-loading">
+            <i class="pi pi-spin pi-spinner"></i>
+            <span>Cargando...</span>
+          </div>
+          <StatsChart
+            v-else
+            :datos="statsStore.progreso?.grafico ?? null"
+          />
+        </div>
+
+        <!-- Hitos -->
+        <div v-if="statsStore.hitos.length" class="stats-hitos">
+          <h3 class="stats-hitos__titulo">🏆 Hitos conseguidos</h3>
+          <ul class="stats-hitos__lista">
+            <li
+              v-for="hito in statsStore.hitos"
+              :key="hito.id"
+              class="hito-item"
+            >
+              <div class="hito-item__icono">
+                <i class="pi pi-star-fill"></i>
+              </div>
+              <div class="hito-item__info">
+                <p class="hito-item__desc">{{ hito.descripcion }}</p>
+                <p class="hito-item__fecha">{{ formatearFecha(hito.fecha) }}</p>
+              </div>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Empty state hitos -->
+        <div v-else-if="!statsStore.loading" class="stats-hitos-vacio">
+          <i class="pi pi-trophy"></i>
+          <p>Completa sesiones para conseguir hitos</p>
         </div>
 
       </div>
@@ -89,7 +112,8 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import AppNav from '@/components/ui/AppNav.vue'
+import AppNav     from '@/components/ui/AppNav.vue'
+import StatsChart from '@/components/stats/StatsChart.vue'
 import { useStatsStore } from '@/stores/statsStore'
 
 const router     = useRouter()
@@ -102,7 +126,6 @@ const periodos = [
   { label: 'Año',    valor: 'año' }
 ]
 
-// Reloj en vivo
 const horaActual = ref('')
 function actualizarHora() {
   horaActual.value = new Date().toLocaleTimeString('es-ES', {
@@ -112,15 +135,14 @@ function actualizarHora() {
 
 onMounted(() => {
   statsStore.cargarProgreso()
+  statsStore.cargarHitos()
   actualizarHora()
   setInterval(actualizarHora, 30000)
 })
 
-// Formatea la fecha mostrada según el periodo activo
 const fechaFormateada = computed(() => {
   const d = new Date(statsStore.fechaActiva + 'T12:00:00')
   const p = statsStore.periodoActivo
-
   if (p === 'dia') {
     return d.toLocaleDateString('es-ES', {
       weekday: 'long', day: 'numeric', month: 'long'
@@ -146,6 +168,12 @@ const tiempoFormateado = computed(() => {
   const m = mins % 60
   return h > 0 ? `${h}h ${m}m` : `${m}m`
 })
+
+function formatearFecha(iso) {
+  return new Date(iso).toLocaleDateString('es-ES', {
+    day: 'numeric', month: 'short', year: 'numeric'
+  })
+}
 </script>
 
 <style scoped>
@@ -155,14 +183,12 @@ const tiempoFormateado = computed(() => {
   flex-direction: column;
   background: var(--color-bg);
 }
-
 .stats-main {
   flex: 1;
   display: flex;
   justify-content: center;
   padding: 1.5rem 1rem 3rem;
 }
-
 .stats-wrapper {
   width: 100%;
   max-width: 500px;
@@ -177,22 +203,15 @@ const tiempoFormateado = computed(() => {
   align-items: center;
   justify-content: space-between;
 }
-
 .stats-nav__back {
-  background: none;
-  border: none;
+  background: none; border: none;
   color: var(--color-text-muted);
   font-family: var(--font-display);
-  font-size: 0.85rem;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  padding: 0;
-  transition: color 0.2s;
+  font-size: 0.85rem; cursor: pointer;
+  display: flex; align-items: center; gap: 0.4rem;
+  padding: 0; transition: color 0.2s;
 }
 .stats-nav__back:hover { color: var(--color-text); }
-
 .stats-nav__hora {
   font-family: var(--font-mono);
   font-size: 1rem;
@@ -205,69 +224,43 @@ const tiempoFormateado = computed(() => {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-full);
-  padding: 3px;
-  gap: 2px;
+  padding: 3px; gap: 2px;
 }
-
 .stats-tab {
-  flex: 1;
-  padding: 0.42rem 0;
+  flex: 1; padding: 0.42rem 0;
   border-radius: var(--radius-full);
-  background: none;
-  border: none;
+  background: none; border: none;
   color: var(--color-text-muted);
   font-family: var(--font-display);
-  font-size: 0.82rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
+  font-size: 0.82rem; font-weight: 600;
+  cursor: pointer; transition: all 0.2s;
 }
-.stats-tab.active {
-  background: var(--color-primary);
-  color: #fff;
-}
+.stats-tab.active { background: var(--color-primary); color: #fff; }
 .stats-tab:not(.active):hover { color: var(--color-text); }
 
-/* Navegación fecha */
+/* Fecha nav */
 .stats-fecha {
-  display: flex;
-  align-items: center;
+  display: flex; align-items: center;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  padding: 0.5rem 0.75rem;
-  gap: 0.5rem;
+  padding: 0.5rem 0.75rem; gap: 0.5rem;
 }
-
 .stats-fecha__btn {
-  background: none;
-  border: none;
-  color: var(--color-text-muted);
-  cursor: pointer;
-  width: 28px;
-  height: 28px;
+  background: none; border: none;
+  color: var(--color-text-muted); cursor: pointer;
+  width: 28px; height: 28px;
   border-radius: var(--radius-sm);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1rem;
-  transition: all 0.2s;
-  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem; transition: all 0.2s; flex-shrink: 0;
 }
 .stats-fecha__btn:hover:not(:disabled) {
-  color: var(--color-text);
-  background: var(--color-surface-2);
+  color: var(--color-text); background: var(--color-surface-2);
 }
-.stats-fecha__btn:disabled {
-  opacity: 0.3;
-  cursor: not-allowed;
-}
-
+.stats-fecha__btn:disabled { opacity: 0.3; cursor: not-allowed; }
 .stats-fecha__label {
-  flex: 1;
-  text-align: center;
-  font-size: 0.85rem;
-  color: var(--color-text-muted);
+  flex: 1; text-align: center;
+  font-size: 0.85rem; color: var(--color-text-muted);
   text-transform: capitalize;
 }
 
@@ -277,61 +270,72 @@ const tiempoFormateado = computed(() => {
   grid-template-columns: 1fr 1fr;
   gap: 0.75rem;
 }
-
 .stats-resumen__card {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   padding: 1.25rem 1rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.3rem;
+  display: flex; flex-direction: column;
+  align-items: center; gap: 0.3rem;
 }
-
 .stats-resumen__valor {
   font-family: var(--font-mono);
-  font-size: 1.8rem;
-  font-weight: 700;
+  font-size: 1.8rem; font-weight: 700;
   color: var(--color-primary);
   min-height: 2.2rem;
-  display: flex;
-  align-items: center;
+  display: flex; align-items: center;
 }
-
 .stats-resumen__etiqueta {
-  font-size: 0.72rem;
-  color: var(--color-text-dim);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  font-weight: 600;
+  font-size: 0.72rem; color: var(--color-text-dim);
+  text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600;
 }
 
-/* Placeholder gráfico */
-.stats-grafico-placeholder {
+/* Gráfico */
+.stats-card {
   background: var(--color-surface);
-  border: 1.5px dashed var(--color-border);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  padding: 3rem 1rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
+  padding: 1.25rem;
+}
+.stats-loading {
+  height: 220px; display: flex;
+  align-items: center; justify-content: center;
+  gap: 0.75rem; color: var(--color-text-muted); font-size: 0.9rem;
 }
 
-.stats-grafico-placeholder__icono {
-  font-size: 2rem;
+/* Hitos */
+.stats-hitos__titulo {
+  font-family: var(--font-display);
+  font-size: 0.95rem; font-weight: 700;
+  color: var(--color-text); margin-bottom: 0.75rem;
+}
+.stats-hitos__lista { list-style: none; display: flex; flex-direction: column; gap: 0.5rem; }
+.hito-item {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 0.85rem 1rem;
+  display: flex; align-items: center; gap: 0.85rem;
+  transition: border-color 0.2s;
+}
+.hito-item:hover { border-color: var(--color-primary); }
+.hito-item__icono {
+  width: 32px; height: 32px;
+  background: var(--color-accent-soft);
+  border-radius: var(--radius-sm);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--color-accent); flex-shrink: 0;
+}
+.hito-item__desc { font-size: 0.88rem; color: var(--color-text); font-weight: 500; }
+.hito-item__fecha { font-size: 0.75rem; color: var(--color-text-dim); margin-top: 0.1rem; }
+
+/* Empty state hitos */
+.stats-hitos-vacio {
+  display: flex; flex-direction: column;
+  align-items: center; gap: 0.5rem;
+  padding: 2rem;
   color: var(--color-text-dim);
+  font-size: 0.85rem;
 }
-
-.stats-grafico-placeholder__texto {
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: var(--color-text-muted);
-}
-
-.stats-grafico-placeholder__sub {
-  font-size: 0.8rem;
-  color: var(--color-text-dim);
-}
+.stats-hitos-vacio .pi { font-size: 1.5rem; }
 </style>

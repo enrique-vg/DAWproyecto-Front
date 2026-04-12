@@ -1,7 +1,7 @@
 <template>
   <div class="timer-config">
 
-    <!-- Selector de materia + botón añadir -->
+    <!-- 1. Selector de materia + botón añadir -->
     <div class="config-row">
       <Dropdown
         v-model="timerStore.materiaSeleccionada"
@@ -20,34 +20,23 @@
       </button>
     </div>
 
-    <!-- Selectores de tiempo -->
+    <!-- 2. Selectores de tiempo — el activo queda resaltado -->
     <div class="config-tiempos">
-      <div class="config-tiempo">
-        <label class="config-tiempo__label">Trabajo</label>
+      <div
+        v-for="t in tipos"
+        :key="t.valor"
+        class="config-tiempo"
+        :class="{ activo: timerStore.tipoSeleccionado === t.valor }"
+        @click="seleccionarTipo(t.valor)"
+      >
+        <label class="config-tiempo__label">{{ t.label }}</label>
         <select
-          v-model.number="timerStore.config.tiempoTrabajo"
+          v-model.number="timerStore.config[t.configKey]"
           class="config-select"
           @change="timerStore.actualizarSegundos()"
+          @click.stop
         >
-          <option v-for="t in [15,20,25,30,45,50,60]" :key="t" :value="t">{{ t }} min</option>
-        </select>
-      </div>
-      <div class="config-tiempo">
-        <label class="config-tiempo__label">Desc. corto</label>
-        <select
-          v-model.number="timerStore.config.tiempoDescansoCorto"
-          class="config-select"
-        >
-          <option v-for="t in [3,5,10]" :key="t" :value="t">{{ t }} min</option>
-        </select>
-      </div>
-      <div class="config-tiempo">
-        <label class="config-tiempo__label">Desc. largo</label>
-        <select
-          v-model.number="timerStore.config.tiempoDescansoLargo"
-          class="config-select"
-        >
-          <option v-for="t in [10,15,20,30]" :key="t" :value="t">{{ t }} min</option>
+          <option v-for="min in t.opciones" :key="min" :value="min">{{ min }} min</option>
         </select>
       </div>
     </div>
@@ -92,18 +81,41 @@
 import { ref, nextTick, watch } from 'vue'
 import { useTimerStore } from '@/stores/timerStore'
 
-const timerStore      = useTimerStore()
+const timerStore = useTimerStore()
+
+// Cada tipo agrupa su label, su clave en config y sus opciones
+const tipos = [
+  {
+    label:     'Trabajo',
+    valor:     'TRABAJO',
+    configKey: 'tiempoTrabajo',
+    opciones:  [1, 15, 20, 25, 30, 45, 50, 60]
+  },
+  {
+    label:     'Desc. corto',
+    valor:     'DESCANSO_CORTO',
+    configKey: 'tiempoDescansoCorto',
+    opciones:  [1, 3, 5, 10]
+  },
+  {
+    label:     'Desc. largo',
+    valor:     'DESCANSO_LARGO',
+    configKey: 'tiempoDescansoLargo',
+    opciones:  [1, 10, 15, 20, 30]
+  }
+]
+
+function seleccionarTipo(valor) {
+  timerStore.tipoSeleccionado = valor
+  timerStore.actualizarSegundos()
+}
+
 const modalAbierto    = ref(false)
 const nuevaMateria    = ref('')
 const inputMateriaRef = ref(null)
 
-function abrirModal() {
-  modalAbierto.value = true
-}
-function cerrarModal() {
-  modalAbierto.value = false
-  nuevaMateria.value = ''
-}
+function abrirModal()  { modalAbierto.value = true }
+function cerrarModal() { modalAbierto.value = false; nuevaMateria.value = '' }
 
 async function guardarMateria() {
   if (!nuevaMateria.value.trim()) return
@@ -111,12 +123,8 @@ async function guardarMateria() {
   cerrarModal()
 }
 
-// Foco automático al abrir el modal
 watch(modalAbierto, async (v) => {
-  if (v) {
-    await nextTick()
-    inputMateriaRef.value?.$el?.focus()
-  }
+  if (v) { await nextTick(); inputMateriaRef.value?.$el?.focus() }
 })
 </script>
 
@@ -137,6 +145,15 @@ watch(modalAbierto, async (v) => {
 }
 .config-dropdown { flex: 1; max-width: 240px; }
 
+/* Fuerza fondo sólido en el panel desplegable del Dropdown */
+:deep(.p-dropdown-panel) {
+  background: var(--color-surface) !important;
+  border: 1.5px solid var(--color-primary) !important;
+}
+:deep(.p-dropdown-items-wrapper) {
+  background: var(--color-surface) !important;
+}
+
 .config-add-btn {
   background: var(--color-surface-2);
   border: 1.5px solid var(--color-border);
@@ -144,8 +161,7 @@ watch(modalAbierto, async (v) => {
   border-radius: var(--radius-sm);
   width: 38px; height: 38px;
   display: flex; align-items: center; justify-content: center;
-  cursor: pointer;
-  flex-shrink: 0;
+  cursor: pointer; flex-shrink: 0;
   transition: all 0.2s;
 }
 .config-add-btn:hover {
@@ -154,26 +170,52 @@ watch(modalAbierto, async (v) => {
   background: var(--color-primary-glow);
 }
 
-/* Fila tiempos */
+/* Selectores de tiempo */
 .config-tiempos {
   display: flex;
   justify-content: center;
   gap: 0.75rem;
   flex-wrap: wrap;
 }
+
 .config-tiempo {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 0.2rem;
+  cursor: pointer;
+  padding: 0.4rem 0.5rem;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid transparent;
+  transition: all 0.2s;
 }
+.config-tiempo:hover {
+  background: var(--color-surface-2);
+}
+
+/* Estado activo: resalta label + borde del grupo */
+.config-tiempo.activo {
+  border-color: var(--color-primary);
+  background: var(--color-primary-glow);
+}
+.config-tiempo.activo .config-tiempo__label {
+  color: var(--color-primary);
+}
+.config-tiempo.activo .config-select {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
 .config-tiempo__label {
   font-size: 0.68rem;
   font-weight: 700;
   color: var(--color-text-dim);
   text-transform: uppercase;
   letter-spacing: 0.06em;
+  transition: color 0.2s;
+  cursor: pointer;
 }
+
 .config-select {
   background: var(--color-surface-2);
   border: 1.5px solid var(--color-border);
@@ -182,11 +224,10 @@ watch(modalAbierto, async (v) => {
   font-family: var(--font-display);
   font-size: 0.85rem;
   padding: 0.35rem 0.6rem;
-  cursor: pointer;
-  outline: none;
+  cursor: pointer; outline: none;
   text-align: center;
   -webkit-appearance: none;
-  transition: border-color 0.2s;
+  transition: border-color 0.2s, color 0.2s;
 }
 .config-select:focus { border-color: var(--color-primary); }
 
@@ -202,8 +243,7 @@ watch(modalAbierto, async (v) => {
   background: var(--color-surface);
   border: 1.5px solid var(--color-border);
   border-radius: var(--radius-lg);
-  padding: 2rem;
-  width: 100%; max-width: 320px;
+  padding: 2rem; width: 100%; max-width: 320px;
   display: flex; flex-direction: column; gap: 1.25rem;
 }
 .modal-card__title {
@@ -212,9 +252,7 @@ watch(modalAbierto, async (v) => {
   color: var(--color-text); text-align: center;
 }
 .field { display: flex; flex-direction: column; gap: 0.35rem; }
-.modal-card__actions {
-  display: flex; gap: 0.75rem; justify-content: flex-end;
-}
+.modal-card__actions { display: flex; gap: 0.75rem; justify-content: flex-end; }
 
 .modal-enter-active, .modal-leave-active { transition: all 0.2s ease; }
 .modal-enter-from, .modal-leave-to { opacity: 0; }

@@ -1,22 +1,10 @@
 /**
  * timerStore — máquina de estados del temporizador.
  *
- * Estados posibles (ESTADO):
- *   idle       → pantalla de configuración, timer parado
- *   running    → cuenta atrás activa
- *   paused     → pausado por el usuario (muestra modal abandonar)
- *   completed  → periodo de trabajo terminado (muestra pantalla éxito)
- *
- * Tipos de periodo (TIPO):
- *   TRABAJO, DESCANSO_CORTO, DESCANSO_LARGO
- *
- * Flujo normal:
- *   idle → [empezar] → running → [00:00] → completed
- *                   → [parar]  → paused  → [volver]   → running
- *                                        → [abandonar] → idle
- *   completed → [uno más]   → running (nuevo trabajo)
- *            → [descanso]   → running (descanso corto/largo)
- *            → [no completé] → idle
+ * Novedades respecto al pack anterior:
+ *   - tipoSeleccionado: el usuario puede elegir qué tipo de periodo
+ *     arrancar (TRABAJO, DESCANSO_CORTO, DESCANSO_LARGO) antes de pulsar Empezar.
+ *     Al completarse un periodo de trabajo sigue siendo él quien decide qué sigue.
  */
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
@@ -45,15 +33,19 @@ export const useTimerStore = defineStore('timer', () => {
   })
 
   // ── Materias ───────────────────────────────────────────────────────────
-  const materias             = ref([])
-  const materiaSeleccionada  = ref(null)
+  const materias            = ref([])
+  const materiaSeleccionada = ref(null)
+
+  // ── Tipo de periodo que el usuario quiere arrancar ─────────────────────
+  // El usuario lo elige en la pantalla de configuración (idle)
+  const tipoSeleccionado = ref(TIPO.TRABAJO)
 
   // ── Estado del timer ───────────────────────────────────────────────────
-  const estado             = ref(ESTADO.IDLE)
-  const tipoPeriodo        = ref(TIPO.TRABAJO)
-  const segundosRestantes  = ref(config.value.tiempoTrabajo * 60)
-  const sesionId           = ref(null)
-  const periodosCompletados = ref(0)   // cada 4 trabajos → descanso largo
+  const estado              = ref(ESTADO.IDLE)
+  const tipoPeriodo         = ref(TIPO.TRABAJO)   // tipo del periodo EN CURSO
+  const segundosRestantes   = ref(config.value.tiempoTrabajo * 60)
+  const sesionId            = ref(null)
+  const periodosCompletados = ref(0)
 
   let _intervalo = null
 
@@ -65,15 +57,15 @@ export const useTimerStore = defineStore('timer', () => {
     String(segundosRestantes.value % 60).padStart(2, '0')
   )
   const progresoPct = computed(() => {
-    const total = _duracionActual() * 60
+    const total = _duracionDe(tipoPeriodo.value) * 60
     if (total === 0) return 0
     return Math.round(((total - segundosRestantes.value) / total) * 100)
   })
 
   // ── Helpers privados ───────────────────────────────────────────────────
-  function _duracionActual() {
-    if (tipoPeriodo.value === TIPO.TRABAJO)         return config.value.tiempoTrabajo
-    if (tipoPeriodo.value === TIPO.DESCANSO_CORTO)  return config.value.tiempoDescansoCorto
+  function _duracionDe(tipo) {
+    if (tipo === TIPO.TRABAJO)         return config.value.tiempoTrabajo
+    if (tipo === TIPO.DESCANSO_CORTO)  return config.value.tiempoDescansoCorto
     return config.value.tiempoDescansoLargo
   }
 
@@ -94,27 +86,25 @@ export const useTimerStore = defineStore('timer', () => {
 
   function _resetear() {
     sesionId.value          = null
-    tipoPeriodo.value       = TIPO.TRABAJO
-    segundosRestantes.value = config.value.tiempoTrabajo * 60
+    tipoPeriodo.value       = tipoSeleccionado.value
+    segundosRestantes.value = _duracionDe(tipoSeleccionado.value) * 60
     estado.value            = ESTADO.IDLE
   }
 
   async function _periodoCompletado() {
     _pararIntervalo()
-    // Registrar en backend (no bloquea aunque falle)
     if (sesionId.value) {
       sesionesService.registrarPeriodo(sesionId.value, {
         tipo:       tipoPeriodo.value,
-        duracion:   _duracionActual(),
+        duracion:   _duracionDe(tipoPeriodo.value),
         completado: true
       }).catch(() => {})
     }
-
+    // Solo muestra pantalla de completado en periodos de TRABAJO
     if (tipoPeriodo.value === TIPO.TRABAJO) {
       periodosCompletados.value++
       estado.value = ESTADO.COMPLETADO
     } else {
-      // Tras descanso → vuelve a idle para nueva sesión
       _resetear()
     }
   }
@@ -127,14 +117,13 @@ export const useTimerStore = defineStore('timer', () => {
       config.value.tiempoTrabajo       = data.tiempoTrabajo       ?? 25
       config.value.tiempoDescansoCorto = data.tiempoDescanso      ?? 5
       config.value.tiempoDescansoLargo = data.tiempoDescansoLargo ?? 15
-      segundosRestantes.value = config.value.tiempoTrabajo * 60
+      actualizarSegundos()
     } catch { /* usa defaults */ }
   }
 
   async function cargarMaterias() {
-    try {
-      materias.value = await materiasService.getAll()
-    } catch { materias.value = [] }
+    try { materias.value = await materiasService.getAll() }
+    catch { materias.value = [] }
   }
 
   async function crearMateria(nombre) {
@@ -143,20 +132,27 @@ export const useTimerStore = defineStore('timer', () => {
     return nueva
   }
 
+  // Llamado cuando el usuario cambia el tipo seleccionado o los tiempos (solo en idle)
+  function actualizarSegundos() {
+    if (estado.value === ESTADO.IDLE) {
+      tipoPeriodo.value       = tipoSeleccionado.value
+      segundosRestantes.value = _duracionDe(tipoSeleccionado.value) * 60
+    }
+  }
+
   async function empezar() {
     try {
       const sesion   = await sesionesService.iniciar(materiaSeleccionada.value?.id ?? null)
       sesionId.value = sesion.id
     } catch { /* continúa sin sesión en backend */ }
 
-    tipoPeriodo.value       = TIPO.TRABAJO
-    segundosRestantes.value = config.value.tiempoTrabajo * 60
+    tipoPeriodo.value       = tipoSeleccionado.value
+    segundosRestantes.value = _duracionDe(tipoSeleccionado.value) * 60
     estado.value            = ESTADO.CORRIENDO
     _arrancarIntervalo()
   }
 
   function parar() {
-    // Solo pausa — el componente abre el modal de confirmación
     estado.value = ESTADO.PAUSADO
     _pararIntervalo()
   }
@@ -175,32 +171,19 @@ export const useTimerStore = defineStore('timer', () => {
   }
 
   async function iniciarDescanso() {
-    // Cada 4 pomodoros → descanso largo
     const esLargo         = periodosCompletados.value % 4 === 0
     tipoPeriodo.value     = esLargo ? TIPO.DESCANSO_LARGO : TIPO.DESCANSO_CORTO
-    segundosRestantes.value = (esLargo
-      ? config.value.tiempoDescansoLargo
-      : config.value.tiempoDescansoCorto) * 60
-    estado.value = ESTADO.CORRIENDO
+    segundosRestantes.value = _duracionDe(tipoPeriodo.value) * 60
+    estado.value          = ESTADO.CORRIENDO
     _arrancarIntervalo()
   }
 
-  function actualizarSegundos() {
-    // Llamado cuando el usuario cambia los tiempos en el config (solo en idle)
-    if (estado.value === ESTADO.IDLE) {
-      segundosRestantes.value = config.value.tiempoTrabajo * 60
-    }
-  }
-
   return {
-    // Estado
     config, materias, materiaSeleccionada,
+    tipoSeleccionado,
     estado, tipoPeriodo, segundosRestantes, periodosCompletados,
-    // Computed
     minutos, segundos, progresoPct,
-    // Constantes exportadas para usar en componentes
     ESTADO, TIPO,
-    // Acciones
     cargarConfig, cargarMaterias, crearMateria,
     empezar, parar, reanudar, abandonar, iniciarDescanso,
     actualizarSegundos
