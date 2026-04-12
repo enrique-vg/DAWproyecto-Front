@@ -1,6 +1,5 @@
 /**
- * MSW Handlers — Día 2: auth + timer completo.
- * Todos los datos viven en memoria durante la sesión del navegador.
+ * MSW Handlers — Día 3a: auth + timer + endpoints de estadísticas.
  */
 import { http, HttpResponse } from 'msw'
 
@@ -23,20 +22,42 @@ let materiasMock = [
 let sesiones    = []
 let sesionCount = 100
 
+const hitosMock = [
+  { id: 1, descripcion: 'Primera sesión completada 🎯', fecha: new Date().toISOString() },
+  { id: 2, descripcion: '5 pomodoros en un día 🔥',    fecha: new Date().toISOString() }
+]
+
+// Genera datos de resumen simulados por periodo
+function generarProgreso(periodo) {
+  const etiquetas = {
+    dia:    ['00h','02h','04h','06h','08h','10h','12h','14h','16h','18h','20h','22h'],
+    semana: ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'],
+    mes:    Array.from({ length: 30 }, (_, i) => `${i + 1}`),
+    año:    ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic']
+  }
+  const labels = etiquetas[periodo] ?? etiquetas.semana
+  return {
+    totalSesiones: Math.floor(Math.random() * 40) + 3,
+    totalTiempo:   Math.floor(Math.random() * 500) + 60,
+    grafico: {
+      labels,
+      datos: labels.map(() => Math.floor(Math.random() * 120))
+    }
+  }
+}
+
 export const handlers = [
 
   // ── AUTH ────────────────────────────────────────────────────────────────
   http.get(`${BASE}/sanctum/csrf-cookie`, () =>
     new HttpResponse(null, { status: 204 })
   ),
-
   http.post(`${BASE}/api/login`, async ({ request }) => {
     const body = await request.json()
     if (!body.email || !body.password)
       return HttpResponse.json({ message: 'Credenciales incorrectas.' }, { status: 422 })
     return HttpResponse.json({ user: usuarioMock })
   }),
-
   http.post(`${BASE}/api/register`, async ({ request }) => {
     const body = await request.json()
     if (!body.email || !body.password || !body.nombre)
@@ -44,23 +65,19 @@ export const handlers = [
     usuarioMock = { ...usuarioMock, nombre: body.nombre, email: body.email }
     return HttpResponse.json({ user: usuarioMock }, { status: 201 })
   }),
-
   http.post(`${BASE}/api/logout`, () =>
     new HttpResponse(null, { status: 204 })
   ),
-
   http.get(`${BASE}/api/user`, () =>
     new HttpResponse(null, { status: 401 })
   ),
 
-  // ── CONFIGURACIÓN ──────────────────────────────────────────────────────
+  // ── CONFIG ─────────────────────────────────────────────────────────────
   http.get(`${BASE}/api/configuracion`, () =>
     HttpResponse.json(configMock)
   ),
-
   http.put(`${BASE}/api/configuracion`, async ({ request }) => {
-    const body  = await request.json()
-    configMock  = { ...configMock, ...body }
+    configMock = { ...configMock, ...await request.json() }
     return HttpResponse.json(configMock)
   }),
 
@@ -68,14 +85,12 @@ export const handlers = [
   http.get(`${BASE}/api/materias`, () =>
     HttpResponse.json(materiasMock)
   ),
-
   http.post(`${BASE}/api/materias`, async ({ request }) => {
     const body  = await request.json()
     const nueva = { id: Date.now(), nombre: body.nombre }
     materiasMock.push(nueva)
     return HttpResponse.json(nueva, { status: 201 })
   }),
-
   http.delete(`${BASE}/api/materias/:id`, ({ params }) => {
     materiasMock = materiasMock.filter(m => m.id !== Number(params.id))
     return new HttpResponse(null, { status: 204 })
@@ -83,20 +98,18 @@ export const handlers = [
 
   // ── SESIONES ───────────────────────────────────────────────────────────
   http.post(`${BASE}/api/sesiones`, async ({ request }) => {
-    const body    = await request.json()
     sesionCount++
-    const sesion  = {
+    const sesion = {
       id:          sesionCount,
       fechaInicio: new Date().toISOString(),
       fechaFin:    null,
-      materia_id:  body.materia_id,
+      materia_id:  (await request.json()).materia_id,
       completado:  false,
       periodos:    []
     }
     sesiones.push(sesion)
     return HttpResponse.json(sesion, { status: 201 })
   }),
-
   http.patch(`${BASE}/api/sesiones/:id/finalizar`, async ({ params, request }) => {
     const body   = await request.json()
     const sesion = sesiones.find(s => s.id === Number(params.id))
@@ -106,13 +119,22 @@ export const handlers = [
     }
     return HttpResponse.json(sesion ?? {})
   }),
-
-  // ── PERIODOS ───────────────────────────────────────────────────────────
   http.post(`${BASE}/api/sesiones/:id/periodos`, async ({ params, request }) => {
-    const body   = await request.json()
+    const body    = await request.json()
     const periodo = { id: Date.now(), sesion_id: Number(params.id), ...body }
     const sesion  = sesiones.find(s => s.id === Number(params.id))
     if (sesion) sesion.periodos.push(periodo)
     return HttpResponse.json(periodo, { status: 201 })
-  })
+  }),
+
+  // ── ESTADÍSTICAS ───────────────────────────────────────────────────────
+  http.get(`${BASE}/api/progreso`, ({ request }) => {
+    const url     = new URL(request.url)
+    const periodo = url.searchParams.get('periodo') ?? 'semana'
+    return HttpResponse.json(generarProgreso(periodo))
+  }),
+
+  http.get(`${BASE}/api/hitos`, () =>
+    HttpResponse.json(hitosMock)
+  )
 ]

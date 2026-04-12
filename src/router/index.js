@@ -21,10 +21,15 @@ const routes = [
     meta: { public: true, guestOnly: true }
   },
   {
-    // Placeholder — en el pack Día 2 se sustituye por el timer real
     path: '/timer',
     name: 'timer',
     component: () => import('@/views/TimerView.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/stats',
+    name: 'stats',
+    component: () => import('@/views/StatsView.vue'),
     meta: { requiresAuth: true }
   },
   {
@@ -38,19 +43,14 @@ const router = createRouter({
   routes
 })
 
-// Guard global: protege rutas privadas y redirige a /timer si ya estás logueado
 router.beforeEach(async (to) => {
   const auth = useAuthStore()
-
-  // Si la ruta requiere auth y no sabemos si el usuario está logueado, lo intentamos cargar
   if (!auth.user && to.meta.requiresAuth) {
     await auth.fetchUser()
   }
-
   if (to.meta.requiresAuth && !auth.isAuthenticated) {
     return { name: 'login' }
   }
-
   if (to.meta.guestOnly && auth.isAuthenticated) {
     return { name: 'timer' }
   }
