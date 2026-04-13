@@ -1,5 +1,5 @@
 <template>
-  <div class="timer-clock" :class="tipoClass">
+  <div class="timer-clock" :class="[tipoClass, { 'timer-clock--corriendo': corriendo }]">
     <svg
       class="timer-clock__svg"
       viewBox="0 0 240 240"
@@ -8,19 +8,13 @@
     >
       <circle
         class="timer-clock__track"
-        cx="120"
-        cy="120"
-        :r="radio"
-        stroke-width="8"
-        fill="none"
+        cx="120" cy="120" :r="radio"
+        stroke-width="8" fill="none"
       />
       <circle
         class="timer-clock__arc"
-        cx="120"
-        cy="120"
-        :r="radio"
-        stroke-width="8"
-        fill="none"
+        cx="120" cy="120" :r="radio"
+        stroke-width="8" fill="none"
         stroke-linecap="round"
         :stroke-dasharray="circunferencia"
         :stroke-dashoffset="dashOffset"
@@ -41,7 +35,8 @@ const props = defineProps({
   minutos:     { type: String, required: true },
   segundos:    { type: String, required: true },
   progresoPct: { type: Number, default: 0 },
-  tipo:        { type: String, default: 'TRABAJO' }
+  tipo:        { type: String, default: 'TRABAJO' },
+  corriendo:   { type: Boolean, default: false }
 })
 
 const radio          = 104
@@ -84,9 +79,7 @@ const tipoLabel = computed(() => {
   transform: rotate(-90deg);
 }
 
-.timer-clock__track {
-  stroke: var(--color-surface-2);
-}
+.timer-clock__track { stroke: var(--color-surface-2); }
 
 .timer-clock__arc {
   stroke: var(--color-primary);
@@ -94,39 +87,55 @@ const tipoLabel = computed(() => {
   filter: drop-shadow(0 0 10px var(--color-primary-glow));
 }
 
+/* Variantes de color */
 .timer-clock--descanso-corto .timer-clock__arc {
   stroke: var(--color-success);
   filter: drop-shadow(0 0 10px rgba(78,203,113,0.35));
 }
-
 .timer-clock--descanso-largo .timer-clock__arc {
   stroke: var(--color-accent);
   filter: drop-shadow(0 0 10px rgba(245,166,35,0.35));
 }
 
-.timer-clock__display {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0.3rem;
-  pointer-events: none;
+/* Pulso mientras corre */
+.timer-clock--corriendo .timer-clock__arc {
+  animation: pulso 2.5s ease-in-out infinite;
+}
+.timer-clock--corriendo.timer-clock--descanso-corto .timer-clock__arc {
+  animation: pulso-verde 2.5s ease-in-out infinite;
+}
+.timer-clock--corriendo.timer-clock--descanso-largo .timer-clock__arc {
+  animation: pulso-naranja 2.5s ease-in-out infinite;
 }
 
+@keyframes pulso {
+  0%, 100% { filter: drop-shadow(0 0 8px var(--color-primary-glow)); }
+  50%       { filter: drop-shadow(0 0 20px rgba(124,92,252,0.5)); }
+}
+@keyframes pulso-verde {
+  0%, 100% { filter: drop-shadow(0 0 8px rgba(78,203,113,0.3)); }
+  50%       { filter: drop-shadow(0 0 20px rgba(78,203,113,0.6)); }
+}
+@keyframes pulso-naranja {
+  0%, 100% { filter: drop-shadow(0 0 8px rgba(245,166,35,0.3)); }
+  50%       { filter: drop-shadow(0 0 20px rgba(245,166,35,0.6)); }
+}
+
+/* Display */
+.timer-clock__display {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 0.3rem; pointer-events: none;
+}
 .timer-clock__time {
   font-family: var(--font-mono);
-  font-size: 3rem;
-  font-weight: 700;
+  font-size: 3rem; font-weight: 700;
   color: var(--color-text);
-  letter-spacing: 0.04em;
-  line-height: 1;
+  letter-spacing: 0.04em; line-height: 1;
 }
-
 .timer-clock__tipo {
-  font-size: 0.6rem;
-  font-weight: 700;
+  font-size: 0.6rem; font-weight: 700;
   letter-spacing: 0.2em;
   color: var(--color-text-dim);
   text-transform: uppercase;

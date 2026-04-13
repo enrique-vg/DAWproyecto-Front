@@ -1,5 +1,6 @@
 /**
- * MSW Handlers — Pack L1: auth + timer + stats + perfil.
+ * MSW Handlers — Pack L2: sesión persistente en desarrollo.
+ * El usuario mock se mantiene logueado al recargar la página.
  */
 import { http, HttpResponse } from 'msw'
 
@@ -9,6 +10,9 @@ let usuarioMock = {
   id: 1, nombre: 'Tanker Demo',
   email: 'demo@pomotanks.com', esPremium: false
 }
+
+// Simula si hay sesión activa (se activa al hacer login/register)
+let sesionActiva = false
 
 let configMock = { tiempoTrabajo: 25, tiempoDescanso: 5, tiempoDescansoLargo: 15 }
 
@@ -47,25 +51,34 @@ export const handlers = [
   http.get(`${BASE}/sanctum/csrf-cookie`, () =>
     new HttpResponse(null, { status: 204 })
   ),
+
   http.post(`${BASE}/api/login`, async ({ request }) => {
     const body = await request.json()
     if (!body.email || !body.password)
       return HttpResponse.json({ message: 'Credenciales incorrectas.' }, { status: 422 })
+    sesionActiva = true
     return HttpResponse.json({ user: usuarioMock })
   }),
+
   http.post(`${BASE}/api/register`, async ({ request }) => {
     const body = await request.json()
     if (!body.email || !body.password || !body.nombre)
       return HttpResponse.json({ message: 'Faltan campos.' }, { status: 422 })
-    usuarioMock = { ...usuarioMock, nombre: body.nombre, email: body.email }
+    usuarioMock  = { ...usuarioMock, nombre: body.nombre, email: body.email }
+    sesionActiva = true
     return HttpResponse.json({ user: usuarioMock }, { status: 201 })
   }),
-  http.post(`${BASE}/api/logout`, () =>
-    new HttpResponse(null, { status: 204 })
-  ),
-  http.get(`${BASE}/api/user`, () =>
-    new HttpResponse(null, { status: 401 })
-  ),
+
+  http.post(`${BASE}/api/logout`, () => {
+    sesionActiva = false
+    return new HttpResponse(null, { status: 204 })
+  }),
+
+  // Ahora devuelve el usuario si hay sesión activa
+  http.get(`${BASE}/api/user`, () => {
+    if (!sesionActiva) return new HttpResponse(null, { status: 401 })
+    return HttpResponse.json(usuarioMock)
+  }),
 
   // ── PERFIL ─────────────────────────────────────────────────────────────
   http.patch(`${BASE}/api/user`, async ({ request }) => {
@@ -75,18 +88,14 @@ export const handlers = [
   }),
 
   // ── CONFIG ─────────────────────────────────────────────────────────────
-  http.get(`${BASE}/api/configuracion`, () =>
-    HttpResponse.json(configMock)
-  ),
+  http.get(`${BASE}/api/configuracion`, () => HttpResponse.json(configMock)),
   http.put(`${BASE}/api/configuracion`, async ({ request }) => {
     configMock = { ...configMock, ...await request.json() }
     return HttpResponse.json(configMock)
   }),
 
   // ── MATERIAS ───────────────────────────────────────────────────────────
-  http.get(`${BASE}/api/materias`, () =>
-    HttpResponse.json(materiasMock)
-  ),
+  http.get(`${BASE}/api/materias`, () => HttpResponse.json(materiasMock)),
   http.post(`${BASE}/api/materias`, async ({ request }) => {
     const body  = await request.json()
     const nueva = { id: Date.now(), nombre: body.nombre }
@@ -129,7 +138,5 @@ export const handlers = [
     const periodo = url.searchParams.get('periodo') ?? 'semana'
     return HttpResponse.json(generarProgreso(periodo))
   }),
-  http.get(`${BASE}/api/hitos`, () =>
-    HttpResponse.json(hitosMock)
-  )
+  http.get(`${BASE}/api/hitos`, () => HttpResponse.json(hitosMock))
 ]

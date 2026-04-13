@@ -5,29 +5,25 @@
     <main class="timer-main">
       <Transition name="slide-up" mode="out-in">
 
-        <!-- Estado: COMPLETADO -->
         <CompletadoPanel
           v-if="timerStore.estado === timerStore.ESTADO.COMPLETADO"
           key="completado"
         />
 
-        <!-- Estados: IDLE / CORRIENDO / PAUSADO -->
         <div class="timer-wrapper" v-else key="timer">
 
-          <!-- Config solo visible en idle -->
           <Transition name="colapsar">
             <TimerConfig v-if="timerStore.estado === timerStore.ESTADO.IDLE" />
           </Transition>
 
-          <!-- Reloj SVG -->
           <TimerClock
             :minutos="timerStore.minutos"
             :segundos="timerStore.segundos"
             :progreso-pct="timerStore.progresoPct"
             :tipo="timerStore.tipoPeriodo"
+            :corriendo="timerStore.estado === timerStore.ESTADO.CORRIENDO"
           />
 
-          <!-- Botón principal -->
           <button
             v-if="timerStore.estado === timerStore.ESTADO.IDLE"
             class="btn btn--primary timer-btn"
@@ -52,7 +48,6 @@
             Reanudar
           </button>
 
-          <!-- Mascota / leyenda -->
           <div class="timer-mascota">
             <div class="timer-mascota__img" aria-hidden="true">
               <svg viewBox="0 0 120 80" fill="none">
@@ -79,21 +74,20 @@
       </Transition>
     </main>
 
-    <!-- Modal abandonar (v-model) -->
     <AbandonarModal v-model="mostrarAbandonar" />
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import AppNav         from '@/components/ui/AppNav.vue'
-import TimerConfig    from '@/components/timer/TimerConfig.vue'
-import TimerClock     from '@/components/timer/TimerClock.vue'
+import AppNav          from '@/components/ui/AppNav.vue'
+import TimerConfig     from '@/components/timer/TimerConfig.vue'
+import TimerClock      from '@/components/timer/TimerClock.vue'
 import CompletadoPanel from '@/components/timer/CompletadoPanel.vue'
-import AbandonarModal from '@/components/timer/AbandonarModal.vue'
+import AbandonarModal  from '@/components/timer/AbandonarModal.vue'
 import { useTimerStore } from '@/stores/timerStore'
 
-const timerStore      = useTimerStore()
+const timerStore       = useTimerStore()
 const mostrarAbandonar = ref(false)
 
 onMounted(async () => {
@@ -109,8 +103,8 @@ function handleParar() {
 const textoMascota = computed(() => {
   const e = timerStore.estado
   const t = timerStore.tipoPeriodo
-  if (e === timerStore.ESTADO.IDLE)      return '¡Listo para conquistar el tiempo!'
-  if (t === timerStore.TIPO.TRABAJO)     return '¡Tú puedes! Mantén el foco.'
+  if (e === timerStore.ESTADO.IDLE)    return '¡Listo para conquistar el tiempo!'
+  if (t === timerStore.TIPO.TRABAJO)   return '¡Tú puedes! Mantén el foco.'
   return '¡Descansa, lo mereces!'
 })
 </script>
@@ -118,63 +112,36 @@ const textoMascota = computed(() => {
 <style scoped>
 .timer-page {
   min-height: 100vh;
-  display: flex;
-  flex-direction: column;
+  display: flex; flex-direction: column;
   background: var(--color-bg);
 }
-
 .timer-main {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  flex: 1; display: flex;
+  align-items: center; justify-content: center;
   padding: 2rem 1rem;
 }
-
 .timer-wrapper {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1.75rem;
-  width: 100%;
-  max-width: 400px;
+  display: flex; flex-direction: column;
+  align-items: center; gap: 1.75rem;
+  width: 100%; max-width: 400px;
 }
+.timer-btn { width: 180px; padding: 0.8rem 0; }
 
-.timer-btn {
-  width: 180px;
-  padding: 0.8rem 0;
-}
-
-/* Mascota */
-.timer-mascota {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
-}
+.timer-mascota { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; }
 .timer-mascota__img { width: 120px; height: 80px; }
 .timer-mascota__texto {
-  font-size: 0.85rem;
-  color: var(--color-text-muted);
-  text-align: center;
-  font-style: italic;
+  font-size: 0.85rem; color: var(--color-text-muted);
+  text-align: center; font-style: italic;
 }
 
-/* Transición config al empezar */
 .colapsar-enter-active, .colapsar-leave-active {
-  transition: all 0.3s ease;
-  overflow: hidden;
+  transition: all 0.3s ease; overflow: hidden;
 }
 .colapsar-enter-from, .colapsar-leave-to {
-  opacity: 0;
-  max-height: 0;
-  transform: translateY(-8px);
+  opacity: 0; max-height: 0; transform: translateY(-8px);
 }
-.colapsar-enter-to, .colapsar-leave-from {
-  max-height: 180px;
-}
+.colapsar-enter-to, .colapsar-leave-from { max-height: 200px; }
 
-/* Transición completado ↔ timer */
 .slide-up-enter-active, .slide-up-leave-active {
   transition: all 0.3s cubic-bezier(.4,0,.2,1);
 }
