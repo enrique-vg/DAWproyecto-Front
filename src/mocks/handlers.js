@@ -1,11 +1,10 @@
 /**
- * MSW Handlers — Día 3a: auth + timer + endpoints de estadísticas.
+ * MSW Handlers — Pack L1: auth + timer + stats + perfil.
  */
 import { http, HttpResponse } from 'msw'
 
 const BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 
-// ── Datos en memoria ───────────────────────────────────────────────────────
 let usuarioMock = {
   id: 1, nombre: 'Tanker Demo',
   email: 'demo@pomotanks.com', esPremium: false
@@ -27,7 +26,6 @@ const hitosMock = [
   { id: 2, descripcion: '5 pomodoros en un día 🔥',    fecha: new Date().toISOString() }
 ]
 
-// Genera datos de resumen simulados por periodo
 function generarProgreso(periodo) {
   const etiquetas = {
     dia:    ['00h','02h','04h','06h','08h','10h','12h','14h','16h','18h','20h','22h'],
@@ -39,10 +37,7 @@ function generarProgreso(periodo) {
   return {
     totalSesiones: Math.floor(Math.random() * 40) + 3,
     totalTiempo:   Math.floor(Math.random() * 500) + 60,
-    grafico: {
-      labels,
-      datos: labels.map(() => Math.floor(Math.random() * 120))
-    }
+    grafico: { labels, datos: labels.map(() => Math.floor(Math.random() * 120)) }
   }
 }
 
@@ -72,6 +67,13 @@ export const handlers = [
     new HttpResponse(null, { status: 401 })
   ),
 
+  // ── PERFIL ─────────────────────────────────────────────────────────────
+  http.patch(`${BASE}/api/user`, async ({ request }) => {
+    const body  = await request.json()
+    usuarioMock = { ...usuarioMock, ...body }
+    return HttpResponse.json({ user: usuarioMock })
+  }),
+
   // ── CONFIG ─────────────────────────────────────────────────────────────
   http.get(`${BASE}/api/configuracion`, () =>
     HttpResponse.json(configMock)
@@ -100,12 +102,9 @@ export const handlers = [
   http.post(`${BASE}/api/sesiones`, async ({ request }) => {
     sesionCount++
     const sesion = {
-      id:          sesionCount,
-      fechaInicio: new Date().toISOString(),
-      fechaFin:    null,
-      materia_id:  (await request.json()).materia_id,
-      completado:  false,
-      periodos:    []
+      id: sesionCount, fechaInicio: new Date().toISOString(),
+      fechaFin: null, materia_id: (await request.json()).materia_id,
+      completado: false, periodos: []
     }
     sesiones.push(sesion)
     return HttpResponse.json(sesion, { status: 201 })
@@ -113,10 +112,7 @@ export const handlers = [
   http.patch(`${BASE}/api/sesiones/:id/finalizar`, async ({ params, request }) => {
     const body   = await request.json()
     const sesion = sesiones.find(s => s.id === Number(params.id))
-    if (sesion) {
-      sesion.fechaFin   = new Date().toISOString()
-      sesion.completado = body.completado
-    }
+    if (sesion) { sesion.fechaFin = new Date().toISOString(); sesion.completado = body.completado }
     return HttpResponse.json(sesion ?? {})
   }),
   http.post(`${BASE}/api/sesiones/:id/periodos`, async ({ params, request }) => {
@@ -133,7 +129,6 @@ export const handlers = [
     const periodo = url.searchParams.get('periodo') ?? 'semana'
     return HttpResponse.json(generarProgreso(periodo))
   }),
-
   http.get(`${BASE}/api/hitos`, () =>
     HttpResponse.json(hitosMock)
   )
