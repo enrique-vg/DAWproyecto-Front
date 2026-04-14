@@ -31,7 +31,6 @@
           >
             Empezar
           </button>
-
           <button
             v-else-if="timerStore.estado === timerStore.ESTADO.CORRIENDO"
             class="btn btn--danger timer-btn"
@@ -39,7 +38,6 @@
           >
             Parar
           </button>
-
           <button
             v-else-if="timerStore.estado === timerStore.ESTADO.PAUSADO"
             class="btn btn--primary timer-btn"
@@ -111,21 +109,26 @@ const textoMascota = computed(() => {
 
 <style scoped>
 .timer-page {
-  min-height: 100vh;
+  min-height: 100vh; min-height: 100dvh;
   display: flex; flex-direction: column;
   background: var(--color-bg);
 }
+
 .timer-main {
-  flex: 1; display: flex;
-  align-items: center; justify-content: center;
-  padding: 2rem 1rem;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem var(--page-padding);
 }
+
 .timer-wrapper {
   display: flex; flex-direction: column;
-  align-items: center; gap: 1.75rem;
-  width: 100%; max-width: 400px;
+  align-items: center; gap: 1.5rem;
+  width: 100%; max-width: 420px;
 }
-.timer-btn { width: 180px; padding: 0.8rem 0; }
+
+.timer-btn { width: 200px; padding: 0.9rem 0; }
 
 .timer-mascota { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; }
 .timer-mascota__img { width: 120px; height: 80px; }
@@ -134,21 +137,27 @@ const textoMascota = computed(() => {
   text-align: center; font-style: italic;
 }
 
+/* Móvil: alinear arriba para aprovechar espacio vertical */
+@media (max-width: 480px) {
+  .timer-main {
+    align-items: flex-start;
+    padding-top: 1.25rem;
+  }
+  .timer-wrapper { gap: 1.25rem; }
+  .timer-btn { width: 100%; max-width: 260px; }
+}
+
 .colapsar-enter-active, .colapsar-leave-active {
   transition: all 0.3s ease; overflow: hidden;
 }
 .colapsar-enter-from, .colapsar-leave-to {
   opacity: 0; max-height: 0; transform: translateY(-8px);
 }
-.colapsar-enter-to, .colapsar-leave-from { max-height: 200px; }
+.colapsar-enter-to, .colapsar-leave-from { max-height: 220px; }
 
 .slide-up-enter-active, .slide-up-leave-active {
   transition: all 0.3s cubic-bezier(.4,0,.2,1);
 }
 .slide-up-enter-from { opacity: 0; transform: translateY(20px); }
 .slide-up-leave-to   { opacity: 0; transform: translateY(-20px); }
-
-@media (max-width: 480px) {
-  .timer-main { padding: 1rem 0.75rem; align-items: flex-start; padding-top: 1.5rem; }
-}
 </style>

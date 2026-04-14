@@ -46,36 +46,45 @@ const dashOffset = computed(() =>
   circunferencia * (1 - props.progresoPct / 100)
 )
 
-const tipoClass = computed(() => {
-  const map = {
-    TRABAJO:        'timer-clock--trabajo',
-    DESCANSO_CORTO: 'timer-clock--descanso-corto',
-    DESCANSO_LARGO: 'timer-clock--descanso-largo'
-  }
-  return map[props.tipo] ?? 'timer-clock--trabajo'
-})
+const tipoClass = computed(() => ({
+  TRABAJO:        'timer-clock--trabajo',
+  DESCANSO_CORTO: 'timer-clock--descanso-corto',
+  DESCANSO_LARGO: 'timer-clock--descanso-largo'
+}[props.tipo] ?? 'timer-clock--trabajo'))
 
-const tipoLabel = computed(() => {
-  const map = {
-    TRABAJO:        'TRABAJO',
-    DESCANSO_CORTO: 'DESCANSO CORTO',
-    DESCANSO_LARGO: 'DESCANSO LARGO'
-  }
-  return map[props.tipo] ?? ''
-})
+const tipoLabel = computed(() => ({
+  TRABAJO:        'TRABAJO',
+  DESCANSO_CORTO: 'DESCANSO CORTO',
+  DESCANSO_LARGO: 'DESCANSO LARGO'
+}[props.tipo] ?? ''))
 </script>
 
 <style scoped>
 .timer-clock {
   position: relative;
+  /* Tamaño base escritorio */
   width: 240px;
   height: 240px;
   flex-shrink: 0;
 }
 
+/* Tablet */
+@media (max-width: 768px) {
+  .timer-clock { width: 260px; height: 260px; }
+}
+
+/* Móvil grande */
+@media (max-width: 480px) {
+  .timer-clock { width: 280px; height: 280px; }
+}
+
+/* Móvil pequeño */
+@media (max-width: 360px) {
+  .timer-clock { width: 240px; height: 240px; }
+}
+
 .timer-clock__svg {
-  width: 100%;
-  height: 100%;
+  width: 100%; height: 100%;
   transform: rotate(-90deg);
 }
 
@@ -86,8 +95,6 @@ const tipoLabel = computed(() => {
   transition: stroke-dashoffset 0.95s linear;
   filter: drop-shadow(0 0 10px var(--color-primary-glow));
 }
-
-/* Variantes de color */
 .timer-clock--descanso-corto .timer-clock__arc {
   stroke: var(--color-success);
   filter: drop-shadow(0 0 10px rgba(78,203,113,0.35));
@@ -136,13 +143,11 @@ const tipoLabel = computed(() => {
 }
 .timer-clock__tipo {
   font-size: 0.6rem; font-weight: 700;
-  letter-spacing: 0.2em;
-  color: var(--color-text-dim);
+  letter-spacing: 0.2em; color: var(--color-text-dim);
   text-transform: uppercase;
 }
 
-@media (max-width: 380px) {
-  .timer-clock { width: 200px; height: 200px; }
-  .timer-clock__time { font-size: 2.4rem; }
+@media (max-width: 480px) {
+  .timer-clock__time { font-size: 3.4rem; }
 }
 </style>

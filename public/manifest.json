@@ -1,0 +1,18 @@
+{
+  "name": "PomoTanks",
+  "short_name": "PomoTanks",
+  "description": "Temporizador Pomodoro para conquistar tu tiempo",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0e0e13",
+  "theme_color": "#7c5cfc",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/tank.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

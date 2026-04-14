@@ -1,8 +1,7 @@
 <template>
   <nav class="app-nav">
 
-    <!-- Izquierda: menú hamburguesa -->
-    <div class="app-nav__left" ref="menuRef"> 
+    <div class="app-nav__left" ref="menuRef">
       <button
         class="app-nav__menu-btn"
         @click="menuOpen = !menuOpen"
@@ -15,10 +14,7 @@
       </button>
 
       <Transition name="dropdown">
-        <div
-          v-if="menuOpen"
-          class="app-nav__dropdown"
-        >
+        <div v-if="menuOpen" class="app-nav__dropdown">
           <RouterLink to="/timer"    class="app-nav__dropdown-item" @click="menuOpen = false">
             <i class="pi pi-clock"></i> Timer
           </RouterLink>
@@ -33,33 +29,20 @@
             <i class="pi pi-cog"></i> Ajustes
           </RouterLink>
           <div class="app-nav__divider"></div>
-          <button
-            class="app-nav__dropdown-item app-nav__dropdown-item--danger"
-            @click="handleLogout"
-          >
+          <button class="app-nav__dropdown-item app-nav__dropdown-item--danger" @click="handleLogout">
             <i class="pi pi-sign-out"></i> Cerrar sesión
           </button>
         </div>
       </Transition>
     </div>
 
-    <!-- Centro: marca -->
     <RouterLink to="/timer" class="app-nav__brand">PomoTanks</RouterLink>
 
-    <!-- Derecha: tabs -->
     <div class="app-nav__right">
-      <RouterLink
-        to="/timer"
-        class="app-nav__tab"
-        :class="{ active: $route.name === 'timer' }"
-      >
+      <RouterLink to="/timer" class="app-nav__tab" :class="{ active: $route.name === 'timer' }">
         Timer
       </RouterLink>
-      <RouterLink
-        to="/stats"
-        class="app-nav__tab"
-        :class="{ active: $route.name === 'stats' }"
-      >
+      <RouterLink to="/stats" class="app-nav__tab" :class="{ active: $route.name === 'stats' }">
         Stats
       </RouterLink>
     </div>
@@ -103,17 +86,19 @@ onUnmounted(() => document.removeEventListener('click', handleClickOutside))
   justify-content: space-between;
   padding: 0 1.25rem;
   height: 56px;
-  background: rgba(14,14,19,0.88);
+  background: rgba(14,14,19,0.92);
   backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--color-border-soft);
 }
 
+/* Izquierda */
 .app-nav__left { position: relative; width: 80px; }
 
 .app-nav__menu-btn {
   background: none; border: none;
   padding: 0.5rem;
   display: flex; align-items: center; justify-content: center;
+  min-width: 44px; min-height: 44px;
 }
 
 .hamburger { display: flex; flex-direction: column; gap: 4px; width: 20px; }
@@ -128,6 +113,7 @@ onUnmounted(() => document.removeEventListener('click', handleClickOutside))
 .hamburger.open span:nth-child(2) { opacity: 0; transform: scaleX(0); }
 .hamburger.open span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
 
+/* Dropdown */
 .app-nav__dropdown {
   position: absolute;
   top: calc(100% + 0.5rem);
@@ -135,14 +121,15 @@ onUnmounted(() => document.removeEventListener('click', handleClickOutside))
   background: var(--color-surface);
   border: 1.5px solid var(--color-border);
   border-radius: var(--radius-md);
-  min-width: 190px;
+  min-width: 200px;
   box-shadow: var(--shadow-md);
   overflow: hidden;
   z-index: 200;
 }
+
 .app-nav__dropdown-item {
   display: flex; align-items: center; gap: 0.6rem;
-  padding: 0.75rem 1rem;
+  padding: 0.85rem 1rem;
   color: var(--color-text-muted);
   font-size: 0.9rem;
   font-family: var(--font-display);
@@ -151,6 +138,7 @@ onUnmounted(() => document.removeEventListener('click', handleClickOutside))
   background: none; border: none;
   width: 100%; cursor: pointer;
   transition: background 0.15s, color 0.15s;
+  min-height: 48px;
 }
 .app-nav__dropdown-item:hover { background: var(--color-surface-2); color: var(--color-text); }
 .app-nav__dropdown-item.router-link-active { color: var(--color-primary); }
@@ -158,6 +146,7 @@ onUnmounted(() => document.removeEventListener('click', handleClickOutside))
 .app-nav__dropdown-item--danger:hover { background: rgba(255,94,94,0.08) !important; }
 .app-nav__divider { height: 1px; background: var(--color-border-soft); margin: 0.2rem 0; }
 
+/* Centro */
 .app-nav__brand {
   position: absolute; left: 50%; transform: translateX(-50%);
   font-family: var(--font-display); font-weight: 800;
@@ -165,6 +154,7 @@ onUnmounted(() => document.removeEventListener('click', handleClickOutside))
   text-decoration: none !important; letter-spacing: -0.01em;
 }
 
+/* Derecha */
 .app-nav__right { display: flex; gap: 0.25rem; width: 80px; justify-content: flex-end; }
 
 .app-nav__tab {
@@ -174,9 +164,17 @@ onUnmounted(() => document.removeEventListener('click', handleClickOutside))
   color: var(--color-text-muted);
   text-decoration: none !important;
   transition: all 0.2s;
+  min-height: 36px;
+  display: flex; align-items: center;
 }
 .app-nav__tab:hover { color: var(--color-text); background: var(--color-surface-2); }
 .app-nav__tab.active { background: var(--color-primary); color: #fff; }
+
+/* Móvil: ocultar tabs, más espacio al hamburguesa */
+@media (max-width: 380px) {
+  .app-nav__right { display: none; }
+  .app-nav__left { width: auto; }
+}
 
 .dropdown-enter-active, .dropdown-leave-active { transition: all 0.2s ease; }
 .dropdown-enter-from, .dropdown-leave-to { opacity: 0; transform: translateY(-6px); }
