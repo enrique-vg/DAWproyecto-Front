@@ -45,24 +45,36 @@ const routes = [
     meta: { requiresAuth: true }
   },
   {
+    // Captura cualquier ruta no definida → 404
     path: '/:pathMatch(.*)*',
-    redirect: '/'
+    name: 'not-found',
+    component: () => import('@/views/NotFoundView.vue'),
+    meta: { public: true }
   }
 ]
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
-  routes
+  routes,
+  // Scroll al inicio en cada navegación
+  scrollBehavior() {
+    return { top: 0, behavior: 'smooth' }
+  }
 })
 
 router.beforeEach(async (to) => {
   const auth = useAuthStore()
-  if (!auth.user && to.meta.requiresAuth) {
+
+  // Esperar a que la sesión esté inicializada antes de navegar
+  // (evita el flash de redirección al login en el primer load)
+  if (!auth.initialized && to.meta.requiresAuth) {
     await auth.fetchUser()
   }
+
   if (to.meta.requiresAuth && !auth.isAuthenticated) {
     return { name: 'login' }
   }
+
   if (to.meta.guestOnly && auth.isAuthenticated) {
     return { name: 'timer' }
   }

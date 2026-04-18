@@ -1,26 +1,20 @@
 /**
  * authStore — gestiona el estado de autenticación global.
  *
- * Expone:
- *   user            → objeto usuario o null
- *   isAuthenticated → computed boolean
- *   isPremium       → computed boolean
- *   loading         → boolean durante peticiones
- *   error           → string con el último error
- *
- *   fetchUser()  → intenta cargar el usuario desde /api/user
- *   login()      → credenciales → actualiza user
- *   register()   → datos registro → actualiza user
- *   logout()     → limpia user
+ * Novedad respecto al pack anterior:
+ *   - initialized: boolean que se activa cuando fetchUser() ha terminado
+ *     (tanto si hay sesión como si no). App.vue lo usa para mostrar
+ *     el AppLoader mientras se verifica la sesión al arrancar.
  */
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { authService } from '@/services/authService'
 
 export const useAuthStore = defineStore('auth', () => {
-  const user    = ref(null)
-  const loading = ref(false)
-  const error   = ref(null)
+  const user        = ref(null)
+  const loading     = ref(false)
+  const error       = ref(null)
+  const initialized = ref(false)   // ← NUEVO: sesión ya verificada
 
   const isAuthenticated = computed(() => !!user.value)
   const isPremium       = computed(() => user.value?.esPremium ?? false)
@@ -28,11 +22,12 @@ export const useAuthStore = defineStore('auth', () => {
   async function fetchUser() {
     try {
       loading.value = true
-      user.value = await authService.getUser()
+      user.value    = await authService.getUser()
     } catch {
-      user.value = null   // sesión no activa o backend no disponible
+      user.value = null
     } finally {
-      loading.value = false
+      loading.value     = false
+      initialized.value = true   // siempre se activa, haya sesión o no
     }
   }
 
@@ -75,7 +70,7 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   return {
-    user, loading, error,
+    user, loading, error, initialized,
     isAuthenticated, isPremium,
     fetchUser, login, register, logout
   }

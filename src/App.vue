@@ -1,20 +1,49 @@
 <template>
-  <RouterView v-slot="{ Component, route }">
-    <Transition :name="route.meta.transition || 'fade'" mode="out-in">
-      <component :is="Component" :key="route.path" />
-    </Transition>
-  </RouterView>
+  <!-- Loader hasta que la sesión esté verificada -->
+  <Transition name="loader-fade">
+    <AppLoader v-if="!authStore.initialized" />
+  </Transition>
 
-  <!-- Toast global — accesible desde cualquier vista -->
+  <!-- App normal -->
+  <Transition name="loader-fade">
+    <div v-if="authStore.initialized" class="app-root">
+      <RouterView v-slot="{ Component, route }">
+        <Transition :name="route.meta.transition || 'fade'" mode="out-in">
+          <component :is="Component" :key="route.path" />
+        </Transition>
+      </RouterView>
+    </div>
+  </Transition>
+
+  <!-- Toast global -->
   <ToastNotification />
 </template>
 
 <script setup>
+import { onMounted } from 'vue'
 import { RouterView } from 'vue-router'
+import AppLoader         from '@/components/ui/AppLoader.vue'
 import ToastNotification from '@/components/ui/ToastNotification.vue'
+import { useAuthStore }  from '@/stores/authStore'
+
+const authStore = useAuthStore()
+
+// Verifica la sesión al arrancar antes de mostrar nada
+onMounted(async () => {
+  await authStore.fetchUser()
+})
 </script>
 
 <style>
+.app-root { min-height: 100vh; }
+
+/* Transición del loader */
+.loader-fade-enter-active { transition: opacity 0.3s ease; }
+.loader-fade-leave-active  { transition: opacity 0.4s ease 0.1s; }
+.loader-fade-enter-from,
+.loader-fade-leave-to      { opacity: 0; }
+
+/* Transiciones de página */
 .fade-enter-active,
 .fade-leave-active {
   transition: opacity 0.25s ease;
