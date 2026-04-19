@@ -124,7 +124,7 @@ const textoMascota = computed(() => {
 }
 
 .timer-mascota__img {
-  width: 160px;
+  width: 290px;
   mix-blend-mode: lighten;
   opacity: 0.85;
   transition: opacity 0.3s ease;
@@ -138,7 +138,7 @@ const textoMascota = computed(() => {
 }
 
 .timer-mascota__texto {
-  font-size: 0.85rem;
+  font-size: 1.1rem;
   color: var(--color-text-muted);
   text-align: center;
   font-style: italic;
@@ -163,6 +163,6 @@ const textoMascota = computed(() => {
   .timer-main { align-items: flex-start; padding-top: 1.25rem; }
   .timer-wrapper { gap: 1.25rem; }
   .timer-btn { width: 100%; max-width: 260px; }
-  .timer-mascota__img { width: 120px; }
+  .timer-mascota__img { width: 260px; }
 }
 </style>

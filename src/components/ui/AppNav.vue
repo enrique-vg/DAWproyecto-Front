@@ -39,11 +39,11 @@
     <RouterLink to="/timer" class="app-nav__brand">PomoTanks</RouterLink>
 
     <div class="app-nav__right">
-      <RouterLink to="/timer" class="app-nav__tab" :class="{ active: $route.name === 'timer' }">
-        Timer
+      <RouterLink to="/timer" class="app-nav__tab" :class="{ active: $route.name === 'timer' }" aria-label="Timer">
+        <i class="pi pi-clock"></i>
       </RouterLink>
-      <RouterLink to="/stats" class="app-nav__tab" :class="{ active: $route.name === 'stats' }">
-        Stats
+      <RouterLink to="/stats" class="app-nav__tab" :class="{ active: $route.name === 'stats' }" aria-label="Estadísticas">
+        <i class="pi pi-chart-bar"></i>
       </RouterLink>
     </div>
 
@@ -158,17 +158,30 @@ onUnmounted(() => document.removeEventListener('click', handleClickOutside))
 .app-nav__right { display: flex; gap: 0.25rem; width: 80px; justify-content: flex-end; }
 
 .app-nav__tab {
-  padding: 0.3rem 0.75rem;
-  border-radius: var(--radius-full);
-  font-size: 0.82rem; font-weight: 600;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
   color: var(--color-text-muted);
   text-decoration: none !important;
   transition: all 0.2s;
-  min-height: 36px;
-  display: flex; align-items: center;
+  border: 2px solid var(--color-border);
+  background: transparent;
 }
-.app-nav__tab:hover { color: var(--color-text); background: var(--color-surface-2); }
-.app-nav__tab.active { background: var(--color-primary); color: #fff; }
+.app-nav__tab:hover {
+  color: var(--color-text);
+  border-color: var(--color-primary);
+  background: var(--color-primary-glow);
+}
+.app-nav__tab.active {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #fff;
+}
+
 
 /* Móvil: ocultar tabs, más espacio al hamburguesa */
 @media (max-width: 380px) {

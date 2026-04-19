@@ -15,14 +15,14 @@
       <!-- Logo -->
       <div class="auth-layout__logo">
         <svg class="auth-layout__logo-icon" viewBox="0 0 64 64" fill="none" aria-label="PomoTanks logo">
-          <rect x="12" y="32" width="40" height="18" rx="4" fill="currentColor"/>
-          <rect x="20" y="24" width="24" height="12" rx="3" fill="currentColor" opacity="0.8"/>
-          <rect x="28" y="16" width="18" height="6" rx="2" fill="currentColor" opacity="0.6"/>
+          <rect x="10" y="34" width="44" height="18" rx="4" fill="currentColor"/>
+          <rect x="14" y="22" width="22" height="13" rx="3" fill="currentColor" opacity="0.8"/>
+          <rect x="35" y="25" width="16" height="6" rx="2" fill="currentColor" opacity="0.6"/>
+          <rect x="44" y="24" width="8" height="8" rx="2" fill="currentColor" opacity="0.6"/>
           <circle cx="20" cy="52" r="5" fill="var(--color-surface)" stroke="currentColor" stroke-width="2"/>
           <circle cx="32" cy="52" r="5" fill="var(--color-surface)" stroke="currentColor" stroke-width="2"/>
           <circle cx="44" cy="52" r="5" fill="var(--color-surface)" stroke="currentColor" stroke-width="2"/>
-        </svg>
-        <span class="auth-layout__logo-text">PomoTanks</span>
+        </svg>        <span class="auth-layout__logo-text">PomoTanks</span>
       </div>
 
       <!-- Contenido específico de cada vista (Login / Register) -->

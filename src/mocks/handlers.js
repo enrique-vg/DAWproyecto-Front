@@ -1,7 +1,3 @@
-/**
- * MSW Handlers — Pack L2: sesión persistente en desarrollo.
- * El usuario mock se mantiene logueado al recargar la página.
- */
 import { http, HttpResponse } from 'msw'
 
 const BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000'
@@ -26,8 +22,8 @@ let sesiones    = []
 let sesionCount = 100
 
 const hitosMock = [
-  { id: 1, descripcion: 'Primera sesión completada 🎯', fecha: new Date().toISOString() },
-  { id: 2, descripcion: '5 pomodoros en un día 🔥',    fecha: new Date().toISOString() }
+  { id: 1, descripcion: 'Rango 1', fecha: new Date().toISOString() },
+  // { id: 2, descripcion: '5 pomodoros en un día 🔥',    fecha: new Date().toISOString() }
 ]
 
 function generarProgreso(periodo) {
