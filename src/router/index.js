@@ -72,7 +72,7 @@ router.beforeEach(async (to) => {
   }
 
   if (to.meta.requiresAuth && !auth.isAuthenticated) {
-    return { name: 'login' }
+    return { name: 'welcome' }
   }
 
   if (to.meta.guestOnly && auth.isAuthenticated) {

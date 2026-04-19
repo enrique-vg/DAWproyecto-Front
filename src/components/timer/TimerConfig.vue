@@ -89,19 +89,19 @@ const tipos = [
     label:     'Trabajo',
     valor:     'TRABAJO',
     configKey: 'tiempoTrabajo',
-    opciones:  [1, 15, 20, 25, 30, 45, 50, 60]
+    opciones:  [0.2, 5, 10, 15, 20, 25, 30, 45, 50, 60]
   },
   {
     label:     'Desc. corto',
     valor:     'DESCANSO_CORTO',
     configKey: 'tiempoDescansoCorto',
-    opciones:  [1, 3, 5, 10]
+    opciones:  [0.2, 3, 5, 10]
   },
   {
     label:     'Desc. largo',
     valor:     'DESCANSO_LARGO',
     configKey: 'tiempoDescansoLargo',
-    opciones:  [1, 10, 15, 20, 30]
+    opciones:  [0.2, 10, 15, 20, 30]
   }
 ]
 

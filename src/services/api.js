@@ -25,10 +25,10 @@ api.interceptors.response.use(
   response => response,
   error => {
     if (error.response?.status === 401) {
-      // Importación dinámica para evitar dependencia circular con el router
       import('@/router').then(({ default: router }) => {
-        if (router.currentRoute.value.name !== 'login') {
-          router.push({ name: 'login' })
+        const rutasProtegidas = ['timer', 'stats', 'profile', 'settings']
+        if (rutasProtegidas.includes(router.currentRoute.value.name)) {
+          router.push({ name: 'welcome' })
         }
       })
     }

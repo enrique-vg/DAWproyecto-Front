@@ -8,14 +8,17 @@
     <div class="welcome__content">
       <div class="welcome__logo">
         <div class="welcome__logo-icon">
+          <!-- <img src="../assets/tanque-futurista.png" height="88" width="88" alt="imagen de tanque futurista"> -->
           <svg viewBox="0 0 64 64" fill="none" aria-label="PomoTanks">
-            <rect x="12" y="32" width="40" height="18" rx="4" fill="currentColor"/>
-            <rect x="20" y="24" width="24" height="12" rx="3" fill="currentColor" opacity="0.8"/>
-            <rect x="28" y="16" width="18" height="6" rx="2" fill="currentColor" opacity="0.6"/>
+            <rect x="10" y="34" width="44" height="18" rx="4" fill="currentColor"/>
+            <rect x="14" y="22" width="22" height="13" rx="3" fill="currentColor" opacity="0.8"/>
+            <rect x="35" y="25" width="16" height="6" rx="2" fill="currentColor" opacity="0.6"/>
+            <rect x="44" y="24" width="8" height="8" rx="2" fill="currentColor" opacity="0.6"/>
             <circle cx="20" cy="52" r="5" fill="var(--color-bg)" stroke="currentColor" stroke-width="2"/>
             <circle cx="32" cy="52" r="5" fill="var(--color-bg)" stroke="currentColor" stroke-width="2"/>
             <circle cx="44" cy="52" r="5" fill="var(--color-bg)" stroke="currentColor" stroke-width="2"/>
           </svg>
+          <!-- <img src="../assets/tanque-futurista.png" alt="imagen de tanque futurista"> -->
         </div>
         <h1 class="welcome__logo-text">PomoTanks</h1>
       </div>
@@ -33,6 +36,12 @@
         </RouterLink>
       </div>
     </div>
+     <img src="@/assets/0Tanque_Futurista.png"
+      alt="imagen de tanque futurista"
+      aria-hidden="true"
+      class="welcome__tanque"
+    />
+
   </div>
 </template>
 
@@ -73,13 +82,63 @@ import { RouterLink } from 'vue-router'
   from { transform: translate(0,0) scale(1); }
   to   { transform: translate(20px,20px) scale(1.05); }
 }
+.welcome__tanque {
+  position: absolute;
+  bottom: -140px;
+  right: -120px;
+  width: 80%;
+  max-width: 1100px;
+  min-width: 500px;
+  opacity: 0.92;
+  pointer-events: none;
+  mix-blend-mode: lighten;
+  animation: flotar 6s ease-in-out infinite alternate;
+  z-index: 0;
+  filter: drop-shadow(0 0 15px rgba(124, 92, 252, 0.3));
+}
+/* Tablet */
+@media (max-width: 850px) {
+  .welcome__tanque {
+    bottom: -80px;
+    right: -60px;
+    width: 85%;
+    min-width: 360px;
+    /* opacity: 0.6; */
+  }
+}
 
+/* Móvil */
+@media (max-width: 570px) {
+  .welcome__tanque {
+    bottom: 20px;
+    right: -50px;
+    width: 100%;
+    min-width: 350px;
+    /* opacity: 0.35; */
+  }
+    .welcome__orb--1 {
+    width: 200px;
+    height: 200px;
+    opacity: 0.6;
+  }
+  .welcome__orb--2 {
+    width: 150px;
+    height: 150px;
+    opacity: 0.5;
+  }
+}
 .welcome__content {
-  position: relative; z-index: 1;
-  display: flex; flex-direction: column;
-  align-items: center; gap: 2rem;
-  max-width: 360px; width: 100%;
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+  max-width: 420px;
+  width: 100%;
   animation: fadeUp 0.6s ease both;
+  /* margin-right: auto; */
+  transform: translateY(-100px); 
 }
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(24px); }

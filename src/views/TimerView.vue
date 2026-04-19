@@ -46,25 +46,14 @@
             Reanudar
           </button>
 
+          <!-- Mascota: tanque real -->
           <div class="timer-mascota">
-            <div class="timer-mascota__img" aria-hidden="true">
-              <svg viewBox="0 0 120 80" fill="none">
-                <rect x="20" y="44" width="80" height="26" rx="6"
-                  fill="var(--color-surface-2)" stroke="var(--color-border)" stroke-width="1.5"/>
-                <rect x="32" y="32" width="52" height="18" rx="4"
-                  fill="var(--color-surface-2)" stroke="var(--color-border)" stroke-width="1.5"/>
-                <rect x="50" y="22" width="36" height="12" rx="3"
-                  fill="var(--color-surface-2)" stroke="var(--color-border)" stroke-width="1.5"/>
-                <circle cx="34" cy="72" r="7"
-                  fill="var(--color-bg)" stroke="var(--color-primary)" stroke-width="2"/>
-                <circle cx="60" cy="72" r="7"
-                  fill="var(--color-bg)" stroke="var(--color-primary)" stroke-width="2"/>
-                <circle cx="86" cy="72" r="7"
-                  fill="var(--color-bg)" stroke="var(--color-primary)" stroke-width="2"/>
-                <circle cx="62" cy="39" r="2.5" fill="var(--color-primary)"/>
-                <circle cx="74" cy="39" r="2.5" fill="var(--color-primary)"/>
-              </svg>
-            </div>
+            <img
+              src="@/assets/0Tanque_Futurista.png"
+              alt=""
+              aria-hidden="true"
+              class="timer-mascota__img"
+            />
             <p class="timer-mascota__texto">{{ textoMascota }}</p>
           </div>
 
@@ -115,10 +104,8 @@ const textoMascota = computed(() => {
 }
 
 .timer-main {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  flex: 1; display: flex;
+  align-items: center; justify-content: center;
   padding: 1.5rem var(--page-padding);
 }
 
@@ -130,23 +117,34 @@ const textoMascota = computed(() => {
 
 .timer-btn { width: 200px; padding: 0.9rem 0; }
 
-.timer-mascota { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; }
-.timer-mascota__img { width: 120px; height: 80px; }
+/* Mascota */
+.timer-mascota {
+  display: flex; flex-direction: column;
+  align-items: center; gap: 0.5rem;
+}
+
+.timer-mascota__img {
+  width: 160px;
+  mix-blend-mode: lighten;
+  opacity: 0.85;
+  transition: opacity 0.3s ease;
+  /* Pequeña animación según estado */
+  animation: flotar 5s ease-in-out infinite alternate;
+}
+
+@keyframes flotar {
+  from { transform: translateY(0) rotate(-1deg); }
+  to   { transform: translateY(-6px) rotate(0.5deg); }
+}
+
 .timer-mascota__texto {
-  font-size: 0.85rem; color: var(--color-text-muted);
-  text-align: center; font-style: italic;
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  text-align: center;
+  font-style: italic;
 }
 
-/* Móvil: alinear arriba para aprovechar espacio vertical */
-@media (max-width: 480px) {
-  .timer-main {
-    align-items: flex-start;
-    padding-top: 1.25rem;
-  }
-  .timer-wrapper { gap: 1.25rem; }
-  .timer-btn { width: 100%; max-width: 260px; }
-}
-
+/* Transiciones */
 .colapsar-enter-active, .colapsar-leave-active {
   transition: all 0.3s ease; overflow: hidden;
 }
@@ -160,4 +158,11 @@ const textoMascota = computed(() => {
 }
 .slide-up-enter-from { opacity: 0; transform: translateY(20px); }
 .slide-up-leave-to   { opacity: 0; transform: translateY(-20px); }
+
+@media (max-width: 480px) {
+  .timer-main { align-items: flex-start; padding-top: 1.25rem; }
+  .timer-wrapper { gap: 1.25rem; }
+  .timer-btn { width: 100%; max-width: 260px; }
+  .timer-mascota__img { width: 120px; }
+}
 </style>

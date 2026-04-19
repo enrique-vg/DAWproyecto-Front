@@ -100,9 +100,9 @@ const configLocal = reactive({
 })
 
 const tiposConfig = [
-  { key: 'tiempoTrabajo',       label: 'Tiempo de trabajo', opciones: [1, 15, 20, 25, 30, 45, 50, 60] },
-  { key: 'tiempoDescansoCorto', label: 'Descanso corto',    opciones: [1, 3, 5, 10] },
-  { key: 'tiempoDescansoLargo', label: 'Descanso largo',    opciones: [1, 10, 15, 20, 30] }
+  { key: 'tiempoTrabajo',       label: 'Tiempo de trabajo', opciones: [0.2, 5, 10, 15, 20, 25, 30, 45, 50, 60] },
+  { key: 'tiempoDescansoCorto', label: 'Descanso corto',    opciones: [0.2, 3, 5, 10] },
+  { key: 'tiempoDescansoLargo', label: 'Descanso largo',    opciones: [0.2, 10, 15, 20, 30] }
 ]
 
 const hayCambios = ref(false)
