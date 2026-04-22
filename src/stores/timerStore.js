@@ -170,11 +170,37 @@ export const useTimerStore = defineStore('timer', () => {
     _resetear()
   }
 
-  async function iniciarDescanso() {
-    const esLargo         = periodosCompletados.value % 4 === 0
-    tipoPeriodo.value     = esLargo ? TIPO.DESCANSO_LARGO : TIPO.DESCANSO_CORTO
+  // async function iniciarDescanso() {
+  //   const esLargo         = periodosCompletados.value % 4 === 0
+  //   tipoPeriodo.value     = esLargo ? TIPO.DESCANSO_LARGO : TIPO.DESCANSO_CORTO
+  //   segundosRestantes.value = _duracionDe(tipoPeriodo.value) * 60
+  //   estado.value          = ESTADO.CORRIENDO
+  //   _arrancarIntervalo()
+  // }
+// async function iniciarDescanso() {
+//     // Finalizar la sesión como completada antes de iniciar el descanso
+//     if (sesionId.value) {
+//       sesionesService.finalizar(sesionId.value, true).catch(() => {})
+//     }
+//     const esLargo           = periodosCompletados.value % 4 === 0
+//     tipoPeriodo.value       = esLargo ? TIPO.DESCANSO_LARGO : TIPO.DESCANSO_CORTO
+//     segundosRestantes.value = _duracionDe(tipoPeriodo.value) * 60
+//     estado.value            = ESTADO.CORRIENDO
+//     _arrancarIntervalo()
+//   }
+async function iniciarDescanso() {
+    if (sesionId.value) {
+      try {
+        await sesionesService.finalizar(sesionId.value, true)
+        console.log('Sesión finalizada OK')
+      } catch (e) {
+        console.error('Error al finalizar sesión:', e)
+      }
+    }
+    const esLargo           = periodosCompletados.value % 4 === 0
+    tipoPeriodo.value       = esLargo ? TIPO.DESCANSO_LARGO : TIPO.DESCANSO_CORTO
     segundosRestantes.value = _duracionDe(tipoPeriodo.value) * 60
-    estado.value          = ESTADO.CORRIENDO
+    estado.value            = ESTADO.CORRIENDO
     _arrancarIntervalo()
   }
 
