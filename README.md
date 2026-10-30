@@ -42,3 +42,8 @@ npm run build
 ```sh
 npm run lint
 ```
+
+
+## Usuario de Prueba
+
+login con `test@pomotanks.dev` / `password`

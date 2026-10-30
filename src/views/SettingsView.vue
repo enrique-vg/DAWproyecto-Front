@@ -88,6 +88,11 @@ import AppNav from '@/components/ui/AppNav.vue'
 import { useTimerStore } from '@/stores/timerStore'
 import { configService, materiasService } from '@/services/timerService'
 import { useToast } from '@/composables/useToast'
+import {
+  OPCIONES_TRABAJO,
+  OPCIONES_DESCANSO_CORTO,
+  OPCIONES_DESCANSO_LARGO
+} from '@/constants/tiempos'
 
 const router     = useRouter()
 const timerStore = useTimerStore()
@@ -100,9 +105,9 @@ const configLocal = reactive({
 })
 
 const tiposConfig = [
-  { key: 'tiempoTrabajo',       label: 'Tiempo de trabajo', opciones: [0.2, 5, 10, 15, 20, 25, 30, 45, 50, 60] },
-  { key: 'tiempoDescansoCorto', label: 'Descanso corto',    opciones: [0.2, 3, 5, 10] },
-  { key: 'tiempoDescansoLargo', label: 'Descanso largo',    opciones: [0.2, 10, 15, 20, 30] }
+  { key: 'tiempoTrabajo',       label: 'Tiempo de trabajo', opciones: OPCIONES_TRABAJO },
+  { key: 'tiempoDescansoCorto', label: 'Descanso corto',    opciones: OPCIONES_DESCANSO_CORTO },
+  { key: 'tiempoDescansoLargo', label: 'Descanso largo',    opciones: OPCIONES_DESCANSO_LARGO }
 ]
 
 const hayCambios = ref(false)

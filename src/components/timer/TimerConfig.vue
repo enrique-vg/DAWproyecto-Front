@@ -80,6 +80,11 @@
 <script setup>
 import { ref, nextTick, watch } from 'vue'
 import { useTimerStore } from '@/stores/timerStore'
+import {
+  OPCIONES_TRABAJO,
+  OPCIONES_DESCANSO_CORTO,
+  OPCIONES_DESCANSO_LARGO
+} from '@/constants/tiempos'
 
 const timerStore = useTimerStore()
 
@@ -89,19 +94,19 @@ const tipos = [
     label:     'Trabajo',
     valor:     'TRABAJO',
     configKey: 'tiempoTrabajo',
-    opciones:  [0.2, 5, 10, 15, 20, 25, 30, 45, 50, 60]
+    opciones:  OPCIONES_TRABAJO
   },
   {
     label:     'Desc. corto',
     valor:     'DESCANSO_CORTO',
     configKey: 'tiempoDescansoCorto',
-    opciones:  [0.2, 3, 5, 10]
+    opciones:  OPCIONES_DESCANSO_CORTO
   },
   {
     label:     'Desc. largo',
     valor:     'DESCANSO_LARGO',
     configKey: 'tiempoDescansoLargo',
-    opciones:  [0.2, 10, 15, 20, 30]
+    opciones:  OPCIONES_DESCANSO_LARGO
   }
 ]
 
