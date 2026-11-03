@@ -47,3 +47,7 @@ npm run lint
 ## Usuario de Prueba
 
 login con `test@pomotanks.dev` / `password`
+
+## Usuario de Prueba registrado
+
+login con `enrique@prueba8.com` / `prueba8.` (con punto final)

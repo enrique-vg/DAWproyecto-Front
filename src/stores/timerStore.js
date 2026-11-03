@@ -92,22 +92,72 @@ export const useTimerStore = defineStore('timer', () => {
   }
 
   async function _periodoCompletado() {
-    _pararIntervalo()
-    if (sesionId.value) {
-      sesionesService.registrarPeriodo(sesionId.value, {
-        tipo:       tipoPeriodo.value,
-        duracion:   _duracionDe(tipoPeriodo.value),
-        completado: true
-      }).catch(() => {})
-    }
-    // Solo muestra pantalla de completado en periodos de TRABAJO
-    if (tipoPeriodo.value === TIPO.TRABAJO) {
-      periodosCompletados.value++
-      estado.value = ESTADO.COMPLETADO
-    } else {
-      _resetear()
-    }
+  _pararIntervalo()
+
+  const id         = sesionId.value
+  const tipo       = tipoPeriodo.value
+  const duracion   = _duracionDe(tipo)
+  const eraTrabajo = tipo === TIPO.TRABAJO
+
+  if (eraTrabajo) {
+    periodosCompletados.value++
+    estado.value = ESTADO.COMPLETADO
+  } else {
+    _resetear()
   }
+
+  // Solo el TRABAJO se envía al servidor
+  if (id && eraTrabajo) {
+    try {
+      await sesionesService.registrarPeriodo(id, { tipo, duracion, completado: true })
+      await sesionesService.finalizar(id, true)
+    } catch { /* la interfaz sigue funcionando aunque falle la red */ }
+  }
+}
+//   async function _periodoCompletado() {
+//   _pararIntervalo()
+
+//   // Guardamos los datos ANTES de cambiar de estado
+//   const id        = sesionId.value
+//   const tipo      = tipoPeriodo.value
+//   const duracion  = _duracionDe(tipo)
+//   const eraTrabajo = tipo === TIPO.TRABAJO
+
+//   // 1. La interfaz reacciona al instante
+//   if (eraTrabajo) {
+//     periodosCompletados.value++
+//     estado.value = ESTADO.COMPLETADO
+//   } else {
+//     _resetear()
+//   }
+
+//   // 2. Después se avisa al backend, sin bloquear la pantalla
+//   if (id) {
+//     try {
+//       await sesionesService.registrarPeriodo(id, { tipo, duracion, completado: true })
+//       if (eraTrabajo) {
+//         await sesionesService.finalizar(id, true)   // ← la línea que faltaba
+//       }
+//     } catch { /* si falla la red, la UI sigue funcionando */ }
+//   }
+// }
+  // async function _periodoCompletado() {
+  //   _pararIntervalo()
+  //   if (sesionId.value) {
+  //     sesionesService.registrarPeriodo(sesionId.value, {
+  //       tipo:       tipoPeriodo.value,
+  //       duracion:   _duracionDe(tipoPeriodo.value),
+  //       completado: true
+  //     }).catch(() => {})
+  //   }
+  //   // Solo muestra pantalla de completado en periodos de TRABAJO
+  //   if (tipoPeriodo.value === TIPO.TRABAJO) {
+  //     periodosCompletados.value++
+  //     estado.value = ESTADO.COMPLETADO
+  //   } else {
+  //     _resetear()
+  //   }
+  // }
 
   // ── Acciones públicas ──────────────────────────────────────────────────
 
@@ -164,30 +214,19 @@ export const useTimerStore = defineStore('timer', () => {
 
   async function abandonar() {
     _pararIntervalo()
-    if (sesionId.value) {
-      sesionesService.finalizar(sesionId.value, false).catch(() => {})
-    }
-    _resetear()
+
+    const id         = sesionId.value
+    const eraDescanso = tipoPeriodo.value !== TIPO.TRABAJO
+
+    // Solo se anula la sesión si lo abandonado era el TRABAJO.
+    // Si era un descanso, el trabajo ya estaba hecho y no se toca.
+    if (id && !eraDescanso) {
+      sesionesService.finalizar(id, false).catch(() => {})
   }
 
-  // async function iniciarDescanso() {
-  //   const esLargo         = periodosCompletados.value % 4 === 0
-  //   tipoPeriodo.value     = esLargo ? TIPO.DESCANSO_LARGO : TIPO.DESCANSO_CORTO
-  //   segundosRestantes.value = _duracionDe(tipoPeriodo.value) * 60
-  //   estado.value          = ESTADO.CORRIENDO
-  //   _arrancarIntervalo()
-  // }
-// async function iniciarDescanso() {
-//     // Finalizar la sesión como completada antes de iniciar el descanso
-//     if (sesionId.value) {
-//       sesionesService.finalizar(sesionId.value, true).catch(() => {})
-//     }
-//     const esLargo           = periodosCompletados.value % 4 === 0
-//     tipoPeriodo.value       = esLargo ? TIPO.DESCANSO_LARGO : TIPO.DESCANSO_CORTO
-//     segundosRestantes.value = _duracionDe(tipoPeriodo.value) * 60
-//     estado.value            = ESTADO.CORRIENDO
-//     _arrancarIntervalo()
-//   }
+  _resetear()
+}
+
 async function iniciarDescanso() {
     if (sesionId.value) {
       try {
@@ -201,6 +240,11 @@ async function iniciarDescanso() {
     tipoPeriodo.value       = esLargo ? TIPO.DESCANSO_LARGO : TIPO.DESCANSO_CORTO
     segundosRestantes.value = _duracionDe(tipoPeriodo.value) * 60
     estado.value            = ESTADO.CORRIENDO
+
+//Texto de prueba solo para comprobaciones
+    // console.log('DESCANSO →', tipoPeriodo.value, segundosRestantes.value)
+    // console.log('CONFIG', JSON.stringify(config.value))
+
     _arrancarIntervalo()
   }
 
